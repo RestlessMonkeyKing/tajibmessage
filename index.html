@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Minimal Messenger</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Supabase JS v2 -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    :root{
+      --bg:#0f1115;
+      --panel:#141821;
+      --panel-2:#0e131b;
+      --text:#e6e9ef;
+      --muted:#9aa4b2;
+      --accent:#4f8cff;
+      --accent-2:#7c5cff;
+      --success:#33d17a;
+      --danger:#ff6b6b;
+      --border: #1f2430;
+      --me:#2a6df0;
+      --them:#2b3344;
+      --radius:14px;
+      --radius-sm:10px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: radial-gradient(1000px 800px at 0% 0%, #151a23 0%, #0f1115 45%), var(--bg);
+      color: var(--text);
+      font: 14px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    a { color: var(--accent); text-decoration: none; }
+    button {
+      cursor: pointer; border: 0; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      padding: 10px 14px; border-radius: 10px; font-weight: 600; transition: transform .12s ease, filter .2s ease; box-shadow: var(--shadow);
+    }
+    button:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+    button:disabled{ opacity:.6; cursor:not-allowed; filter: grayscale(.2); }
+    input, textarea {
+      width: 100%; background: var(--panel-2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    input:focus, textarea:focus{ border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,140,255,.1); }
+
+    .container { display: grid; grid-template-columns: 340px 1fr; gap: 0; height: 100vh; }
+    .panel {
+      background: rgba(20,24,33,.7); backdrop-filter: blur(10px);
+      border-right: 1px solid var(--border);
+    }
+    .panel .inner { height: 100%; display: grid; grid-template-rows: auto auto 1fr auto; }
+    .brand {
+      display:flex; align-items:center; gap:12px; padding: 16px; border-bottom:1px solid var(--border);
+    }
+    .logo {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: conic-gradient(from 240deg, var(--accent), var(--accent-2));
+      box-shadow: 0 5px 18px rgba(79,140,255,.35), inset 0 0 12px rgba(255,255,255,.05);
+    }
+    .brand h1 { font-size: 16px; margin: 0; letter-spacing:.2px; }
+    .profile {
+      padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; border-bottom:1px solid var(--border);
+    }
+    .profile .id {
+      font-size: 12px; color: var(--muted);
+    }
+    .row { display:flex; gap:10px; }
+    .contacts {
+      overflow:auto; padding: 10px;
+    }
+    .contact {
+      display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius: 12px; border:1px solid transparent;
+      background: transparent; transition: background .2s ease, border-color .2s ease, transform .12s ease;
+      cursor: pointer;
+    }
+    .contact:hover { background: rgba(255,255,255,.03); border-color: var(--border); transform: translateY(-1px); }
+    .contact.active { background: rgba(79,140,255,.08); border-color: rgba(79,140,255,.35); }
+    .avatar {
+      width:36px; height:36px; border-radius: 10px; display:grid; place-items:center; font-weight:700;
+      color:#fff; background: linear-gradient(135deg, #2f3a55, #3f4d6f);
+      box-shadow: inset 0 0 8px rgba(0,0,0,.25);
+    }
+    .contact .meta { display:flex; flex-direction:column; gap:2px; }
+    .contact .name { font-weight: 700; }
+    .contact .uid { font-size: 11px; color: var(--muted); }
+    .main { display:grid; grid-template-rows: auto 1fr auto; background: linear-gradient(180deg, rgba(17,21,28,.9), rgba(15,17,21,.95)); }
+    .chat-header { display:flex; align-items:center; gap:12px; padding:16px; border-bottom:1px solid var(--border); min-height:64px; }
+    .chat-header .title { font-weight:800; letter-spacing:.2px; }
+    .chat {
+      padding: 18px; overflow:auto; display:flex; flex-direction: column; gap: 10px;
+      scroll-behavior: smooth;
+    }
+    .msg {
+      max-width: 72%; padding: 10px 12px; border-radius: 14px; position: relative; animation: pop .18s ease-out;
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .msg.me { align-self:flex-end; background: linear-gradient(180deg, rgba(79,140,255,.22), rgba(79,140,255,.12)); border-color: rgba(79,140,255,.35); }
+    .msg.them { align-self:flex-start; background: #161b24; }
+    .msg .time { font-size: 10px; color: var(--muted); margin-top: 6px; text-align: right; }
+    @keyframes pop { from { transform: translateY(4px) scale(.98); opacity: 0 } to { transform: none; opacity: 1 } }
+
+    .composer {
+      display:flex; gap:10px; padding: 12px; border-top:1px solid var(--border);
+      background: rgba(18,22,30,.8);
+    }
+    .composer textarea {
+      height: 46px; padding: 12px; resize: none;
+    }
+    .composer button { padding: 0 18px; height: 46px; }
+
+    .auth {
+      max-width: 380px; margin: 8vh auto; background: rgba(20,24,33,.7);
+      border:1px solid var(--border); padding: 18px; border-radius: 16px; box-shadow: var(--shadow);
+      display: grid; gap: 12px;
+    }
+    .auth h2 { margin: 0 0 2px 0; }
+    .hint { color: var(--muted); font-size: 12px; }
+
+    .toolbar { display:flex; gap:8px; }
+    .muted { color: var(--muted); }
+
+    .pill {
+      display:inline-flex; align-items:center; gap:8px;
+      background: rgba(255,255,255,.04); border:1px solid var(--border); padding: 6px 10px; border-radius: 999px;
+      font-size: 12px; color: var(--muted);
+    }
+
+    .notice { padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,.05); border:1px dashed var(--border); color: var(--muted); font-size: 12px; }
+
+    /* Small screens */
+    @media (max-width: 900px){
+      .container { grid-template-columns: 1fr; }
+      .panel { display:none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- AUTH SCREEN -->
+  <div id="authView" class="auth" style="display:none">
+    <h2>Sign in</h2>
+    <div class="hint">Use Email + Password. First sign in creates your profile + 10‑digit ID.</div>
+    <input id="email" type="email" placeholder="Email" autocomplete="email" />
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+    <div class="row">
+      <button id="btnSignIn">Sign In</button>
+      <button id="btnSignUp" style="background:linear-gradient(135deg,var(--success),#14b87a)">Create account</button>
+    </div>
+    <div id="authMsg" class="notice" style="display:none"></div>
+  </div>
+
+  <!-- APP -->
+  <div id="appView" class="container" style="display:none">
+    <!-- LEFT PANEL -->
+    <aside class="panel">
+      <div class="inner">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <h1>Minimal Messenger</h1>
+        </div>
+        <div class="profile">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input id="displayName" placeholder="Display name" />
+              <button id="saveProfile" title="Save profile" style="padding:8px 10px">Save</button>
+            </div>
+            <div class="id">
+              Your ID: <span id="myId" class="pill">••••••••••</span>
+            </div>
+          </div>
+          <div class="toolbar">
+            <button id="btnSignOut" title="Sign out" style="background:#334155">Sign out</button>
+          </div>
+        </div>
+                <div style="padding: 12px; border-bottom:1px solid var(--border); display:grid; gap:8px;">
+          <div class="row">
+            <input id="addById" placeholder="Add contact by 10‑digit ID" />
+            <button id="btnAddContact" title="Add contact">Add</button>
+          </div>
+          <div class="hint">Tip: Share your ID so friends can add you.</div>
+        </div>
+
+        <div id="contacts" class="contacts"></div>
+
+        <div style="padding:10px;">
+          <div class="notice">Contacts are private to you. Messages are end‑to‑end private at the database level via RLS.</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CHAT -->
+    <main class="main">
+      <div class="chat-header">
+        <div class="avatar" id="chatAvatar">?</div>
+        <div>
+          <div class="title" id="chatName">No chat selected</div>
+          <div class="muted" id="chatSub">Pick a contact to start messaging</div>
+        </div>
+      </div>
+      <div id="chat" class="chat"></div>
+      <div class="composer">
+        <textarea id="inputMsg" placeholder="Type a message..." maxlength="2000"></textarea>
+        <button id="btnSend">Send</button>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // 1) Configure Supabase (replace with your project values if needed)
+    const SUPABASE_URL = "https://rqiwzsenaaejtczzwsfk.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxaXd6c2VuYWFlanRjenp3c2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MDk0NDYsImV4cCI6MjA3MjM4NTQ0Nn0.UdDK7oOMZhZOQuKp8lD5VbNhSpYDr7LpLoq7J4MlvW4";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 2) Global state
+    let session = null;           // Supabase auth session
+    let myAuthId = null;          // auth.users.id
+    let myProfile = null;         // row from public.users
+    let contacts = [];            // [{contact: {id, unique_id, display_name}, ...}]
+    let activeContact = null;     // {id, unique_id, display_name}
+    let channels = [];            // realtime channels
+
+    // 3) Helpers
+    const $ = sel => document.querySelector(sel);
+    function toast(msg, type="info") {
+      const box = $("#authMsg");
+      if (!box) return;
+      box.textContent = msg;
+      box.style.display = "block";
+      box.style.borderColor = type === "error" ? "var(--danger)" : "var(--border)";
+      box.style.color = type === "error" ? "#ffd5d5" : "var(--muted)";
+    }
+    function initialLetters(name) {
+      if (!name) return "?";
+      const parts = name.trim().split(/\s+/);
+      return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
+    }
+    function formatTime(ts) {
+      try {
+        const d = new Date(ts);
+        return d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+      } catch { return ""; }
+    }
+    function tenDigitId() {
+      let s = "";
+      for (let i=0;i<10;i++) s += Math.floor(Math.random()*10);
+      if (s[0] === "0") s = String(1 + Math.floor(Math.random()*9)) + s.slice(1);
+      return s;
+    }
+
+    async function ensureUniqueId() {
+      for (let i=0;i<8;i++) {
+        const candidate = tenDigitId();
+        const { data, error } = await supabase.from("users").select("id").eq("unique_id", candidate).maybeSingle();
+        if (!error && !data) return candidate;
+      }
+      // last resort — highly unlikely to collide repeatedly
+      return String(Date.now()).slice(-10);
+    }
+        // 4) Auth UI wiring
+    $("#btnSignIn").addEventListener("click", async () => {
+      const email = $("#email").value.trim();
+      const password = $("#password").value;
+      if (!email || !password) return toast("Enter email and password", "error");
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return toast(error.message, "error");
+      toast("Signed in");
+    });
+
+    $("#btnSignUp").addEventListener("click", async () => {
+      const email = $("#email").value.trim();
+      const password = $("#password").value;
+      if (!email || !password) return toast("Enter email and password", "error");
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) return toast(error.message, "error");
+      toast("Account created. If email confirmation is ON, check your inbox.");
+    });
+
+    $("#btnSignOut").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+    });
+
+    $("#saveProfile").addEventListener("click", saveProfile);
+    $("#btnAddContact").addEventListener("click", addContact);
+    $("#btnSend").addEventListener("click", sendMessage);
+    $("#inputMsg").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("#btnSend").click(); }
+    });
+
+    // 5) Auth state
+    supabase.auth.onAuthStateChange(async (_evt, currentSession) => {
+      session = currentSession || null;
+      myAuthId = session?.user?.id || null;
+      if (!session) {
+        // show auth
+        $("#authView").style.display = "";
+        $("#appView").style.display = "none";
+        $("#authMsg").style.display = "none";
+        cleanupRealtime();
+        return;
+      }
+      // show app
+      $("#authView").style.display = "none";
+      $("#appView").style.display = "";
+
+      // Ensure profile exists
+      await loadOrCreateProfile();
+      await refreshContacts();
+      setupRealtime();
+      uiProfile();
+      uiContacts();
+      renderChatHeader();
+    });
+
+    // 6) Profile load/create
+    async function loadOrCreateProfile() {
+      // try load
+      let { data: prof, error } = await supabase.from("users").select("*").eq("auth_id", myAuthId).maybeSingle();
+      if (error) console.warn("profile load error", error);
+
+      if (!prof) {
+        const uniqueId = await ensureUniqueId();
+        const email = session?.user?.email || "";
+        const display_name = email ? email.split("@")[0] : "User";
+        const { data: created, error: err2 } = await supabase
+          .from("users")
+          .insert({ auth_id: myAuthId, unique_id: uniqueId, email, display_name })
+          .select("*")
+          .single();
+        if (err2) { console.error(err2); toast("Could not create profile. Check RLS.", "error"); return; }
+        prof = created;
+      }
+      myProfile = prof;
+    }
+
+    async function saveProfile() {
+      if (!myProfile) return;
+      const display_name = $("#displayName").value.trim() || "User";
+      const { data, error } = await supabase
+        .from("users")
+        .update({ display_name })
+        .eq("id", myProfile.id)
+        .select("*")
+        .single();
+      if (error) return toast("Failed to save: " + error.message, "error");
+      myProfile = data;
+      uiProfile();
+      toast("Profile saved");
+    }
+
+    function uiProfile() {
+      $("#displayName").value = myProfile?.display_name || "";
+      $("#myId").textContent = myProfile?.unique_id || "••••••••••";
+    }
+        // 7) Contacts
+    async function refreshContacts() {
+      if (!myProfile) return;
+      // Requires FK contacts.contact_id -> users.id to embed
+      const { data, error } = await supabase
+        .from("contacts")
+        .select("id, created_at, contact:contact_id (id, unique_id, display_name)")
+        .eq("owner_id", myProfile.id)
+        .order("created_at", { ascending: true });
+      if (error) { console.error(error); toast("Cannot load contacts. Check RLS.", "error"); return; }
+      contacts = (data || []).filter(c => c.contact);
+    }
+
+    async function addContact() {
+      const code = $("#addById").value.trim();
+      if (!/^\d{10}$/.test(code)) { toast("Enter a 10‑digit ID", "error"); return; }
+      if (!myProfile) return;
+
+      // find target user
+      const { data: userRow, error: findErr } = await supabase.from("users").select("id, unique_id, display_name").eq("unique_id", code).maybeSingle();
+      if (findErr) return toast(findErr.message, "error");
+      if (!userRow) return toast("No user with that ID", "error");
+      if (userRow.id === myProfile.id) return toast("You can't add yourself", "error");
+      const exists = contacts.some(c => c.contact.id === userRow.id);
+      if (exists) return toast("Already in contacts");
+
+      const { error: insErr } = await supabase.from("contacts").insert({ owner_id: myProfile.id, contact_id: userRow.id });
+      if (insErr) return toast("Cannot add contact. Check RLS.", "error");
+
+      $("#addById").value = "";
+      await refreshContacts();
+      uiContacts();
+      toast("Contact added");
+    }
+
+    function uiContacts() {
+      const box = $("#contacts");
+      box.innerHTML = "";
+      if (!contacts.length) {
+        box.innerHTML = `<div class="notice">No contacts yet. Add one using their 10‑digit ID.</div>`;
+        return;
+      }
+      for (const c of contacts) {
+        const div = document.createElement("div");
+        div.className = "contact" + (activeContact?.id === c.contact.id ? " active" : "");
+        div.innerHTML = `
+          <div class="avatar">${initialLetters(c.contact.display_name)}</div>
+          <div class="meta">
+            <div class="name">${escapeHTML(c.contact.display_name || "User")}</div>
+            <div class="uid">ID: ${escapeHTML(c.contact.unique_id)}</div>
+          </div>
+        `;
+        div.addEventListener("click", async () => {
+          activeContact = c.contact;
+          uiContacts();
+          renderChatHeader();
+          await loadConversation();
+        });
+        box.appendChild(div);
+      }
+    }
+
+    // 8) Messaging
+    async function loadConversation() {
+      if (!activeContact || !myProfile) return;
+      const a = myProfile.id, b = activeContact.id;
+
+      const { data, error } = await supabase
+        .from("messages")
+        .select("id, sender_id, receiver_id, content, created_at")
+        .or(`and(sender_id.eq.${a},receiver_id.eq.${b}),and(sender_id.eq.${b},receiver_id.eq.${a})`)
+        .order("created_at", { ascending: true })
+        .limit(200);
+      if (error) { console.error(error); toast("Cannot load messages. Check RLS.", "error"); return; }
+
+      const chat = $("#chat");
+      chat.innerHTML = "";
+      for (const m of (data || [])) appendMessage(m);
+      // scroll to bottom
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function sendMessage() {
+      if (!activeContact || !myProfile) return;
+      const content = $("#inputMsg").value.trim();
+      if (!content) return;
+      $("#inputMsg").value = "";
+      const { data, error } = await supabase
+        .from("messages")
+        .insert({ sender_id: myProfile.id, receiver_id: activeContact.id, content })
+        .select("*")
+        .single();
+      if (error) { console.error(error); toast("Cannot send. Check RLS.", "error"); return; }
+      // append optimistically (server will also push via realtime)
+      appendMessage(data);
+      $("#chat").scrollTop = $("#chat").scrollHeight;
+    }
+        function appendMessage(m) {
+      const mine = m.sender_id === myProfile.id;
+      const div = document.createElement("div");
+      div.className = "msg " + (mine ? "me" : "them");
+      div.innerHTML = `
+        <div class="text">${escapeHTML(m.content || "")}</div>
+        <div class="time">${formatTime(m.created_at)}</div>
+      `;
+      $("#chat").appendChild(div);
+    }
+
+    // 9) Realtime
+    function cleanupRealtime() {
+      for (const ch of channels) { 
+        try { supabase.removeChannel(ch); } catch {} 
+      }
+      channels = [];
+    }
+
+    function setupRealtime() {
+      cleanupRealtime();
+      if (!myProfile) return;
+
+      // Receive messages sent TO me
+      const chIn = supabase
+        .channel("msgs-in")
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `receiver_id=eq.${myProfile.id}` },
+          (payload) => {
+            const m = payload.new;
+            // Append only if it's from currently open contact
+            if (activeContact && m.sender_id === activeContact.id) {
+              appendMessage(m);
+              $("#chat").scrollTop = $("#chat").scrollHeight;
+            }
+          })
+        .subscribe();
+
+      // Echo of my own sent messages (useful if multiple tabs)
+      const chOut = supabase
+        .channel("msgs-out")
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `sender_id=eq.${myProfile.id}` },
+          (payload) => {
+            const m = payload.new;
+            if (activeContact && m.receiver_id === activeContact.id) {
+              appendMessage(m);
+              $("#chat").scrollTop = $("#chat").scrollHeight;
+            }
+          })
+        .subscribe();
+
+      channels.push(chIn, chOut);
+    }
+
+    // 10) Chat header
+    function renderChatHeader() {
+      const name = activeContact?.display_name || "No chat selected";
+      $("#chatName").textContent = name;
+      $("#chatSub").textContent = activeContact ? `ID: ${activeContact.unique_id}` : "Pick a contact to start messaging";
+      $("#chatAvatar").textContent = initialLetters(activeContact?.display_name || "");
+    }
+
+    // 11) Escaping
+    function escapeHTML(s) {
+      return String(s).replace(/[&<>"']/g, m => (
+        {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]
+      ));
+    }
+  </script>
+</body>
+</html>
