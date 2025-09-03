@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Tajib Lite — Firebase with Notifications</title>
+<title>Tajib Lite — Enhanced Messaging</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 * { box-sizing: border-box; }
 body {
@@ -17,7 +18,7 @@ body {
 }
 .hidden { display: none !important; }
 
-/* Auth Screen - Modernized */
+/* Auth Screen */
 #auth {
   display: flex;
   flex-direction: column;
@@ -137,6 +138,26 @@ body {
   transform: translateY(-50%);
 }
 
+/* Context Menu */
+.context-menu {
+  position: absolute;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: 8px 0;
+  width: 200px;
+}
+
+.context-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.context-menu-item:hover {
+  background: #f0f0f0;
+}
+
 /* Chat area */
 .chat {
   flex: 1; display: flex; flex-direction: column;
@@ -147,31 +168,154 @@ body {
 .chat-header img {
   width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;
 }
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+.typing-dots {
+  display: flex;
+  margin-left: 5px;
+}
+
+.typing-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #666;
+  margin: 0 1px;
+  animation: typingAnimation 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingAnimation {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-5px); }
+}
+
 .chat-messages {
   flex: 1; padding: 15px; overflow-y: auto; background: #fafafa;
 }
+
 .msg {
   max-width: 70%; padding: 12px 16px; border-radius: 18px; margin: 6px 0;
   word-wrap: break-word; font-size: 15px;
+  animation: msgAppear 0.3s ease;
 }
+@keyframes msgAppear {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .me { background: #0a84ff; color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
 .them { background: #e0e0e0; border-bottom-left-radius: 4px; }
+
+.read-receipt {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2px;
+  margin-bottom: 5px;
+}
+
+.read-receipt img {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-left: 5px;
+}
 
 /* Input bar */
 .chat-input {
   display: flex; align-items: center; padding: 10px; border-top: 1px solid #ddd;
   background: #fff;
+  position: relative;
 }
+
 .chat-input input[type="text"] {
   flex: 1; padding: 12px 16px; border-radius: 20px; border: 1px solid #ccc;
   font-size: 14px; outline: none; font-family: 'Inter', sans-serif;
 }
+
 .chat-input button {
   background: none; border: none; margin-left: 8px; cursor: pointer;
   font-size: 20px; padding: 8px; border-radius: 50%;
   transition: background-color 0.2s;
 }
 .chat-input button:hover { background-color: #f0f0f0; color: #0a84ff; }
+
+/* Modals */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.modal-header h3 {
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.modal-body {
+  margin-bottom: 15px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.modal-button {
+  padding: 10px 15px;
+  background: #0a84ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-left: 10px;
+}
 
 /* Toast */
 .toast {
@@ -181,11 +325,127 @@ body {
   transition: opacity 0.3s, transform 0.3s; z-index: 999; font-size: 14px;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Settings */
+.settings-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  margin-left: 10px;
+}
+
+.settings-panel {
+  position: absolute;
+  top: 50px;
+  right: 10px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  width: 200px;
+  z-index: 100;
+}
+
+.settings-option {
+  padding: 8px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.settings-option i {
+  margin-right: 10px;
+  width: 20px;
+}
+
+/* Voice Recorder */
+.voice-recorder {
+  position: absolute;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  padding: 15px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+.voice-recorder-timer {
+  margin: 0 15px;
+}
+
+.voice-recorder-cancel {
+  background: #ff4757;
+  color: white;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Image Preview */
+.image-preview {
+  position: absolute;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  max-width: 200px;
+}
+
+.image-preview img {
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+.image-preview-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.image-preview-button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.image-preview-cancel {
+  background: #ff4757;
+  color: white;
+}
+
+.image-preview-send {
+  background: #0a84ff;
+  color: white;
+}
+
+/* Message status indicators */
+.message-status {
+  font-size: 11px;
+  text-align: right;
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.them .message-status {
+  color: rgba(0, 0, 0, 0.5);
+  text-align: left;
+}
 </style>
 </head>
 <body>
 
-<!-- Auth Screen - Modernized -->
+<!-- Auth Screen -->
 <div id="auth">
   <div class="auth-container">
     <div class="auth-header">
@@ -223,34 +483,130 @@ body {
   <div class="sidebar">
     <div class="sidebar-header">
       <h2>Contacts</h2>
-      <button id="addContactBtn">+</button>
+      <div>
+        <button id="settingsBtn" class="settings-button"><i class="fas fa-cog"></i></button>
+        <button id="addContactBtn">+</button>
+      </div>
     </div>
     <div class="contacts" id="contactsList"></div>
   </div>
   <div class="chat">
     <div class="chat-header" id="chatHeader">
       <img id="chatAvatar" src="" alt="" />
-      <div>
+      <div style="flex: 1;">
         <div id="chatName"></div>
         <div id="chatNumberId" style="font-size:12px;color:#666;"></div>
+      </div>
+      <div id="typingIndicator" class="typing-indicator hidden">
+        <span>typing</span>
+        <div class="typing-dots">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
       </div>
     </div>
     <div class="chat-messages" id="messages"></div>
     <div class="chat-input">
       <input id="messageText" type="text" placeholder="Type a message..." />
-      <button id="sendBtn">📨</button>
-      <button id="voiceBtn">🎤</button>
-      <button id="imageBtn">🖼️</button>
+      <button id="voiceBtn"><i class="fas fa-microphone"></i></button>
+      <button id="imageBtn"><i class="fas fa-image"></i></button>
+      <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+      <input type="file" id="imageUpload" accept="image/*" class="hidden" />
     </div>
   </div>
 </div>
 
 <!-- Toast -->
 <div id="toast" class="toast"></div>
+
+<!-- Context Menu -->
+<div id="contextMenu" class="context-menu hidden">
+  <div class="context-menu-item" data-action="edit">Edit Contact</div>
+  <div class="context-menu-item" data-action="delete">Delete Contact</div>
+</div>
+
+<!-- Add Contact Modal -->
+<div id="addContactModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Add New Contact</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="text" id="contactName" class="modal-input" placeholder="Contact Name">
+      <input type="text" id="contactNumberId" class="modal-input" placeholder="Number ID (10 digits)" maxlength="10">
+      <input type="text" id="contactAvatar" class="modal-input" placeholder="Avatar URL (optional)">
+    </div>
+    <div class="modal-footer">
+      <button class="modal-button" id="addContactModalBtn">Add Contact</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Contact Modal -->
+<div id="editContactModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Edit Contact</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="text" id="editContactName" class="modal-input" placeholder="Contact Name">
+      <input type="text" id="editContactNumberId" class="modal-input" placeholder="Number ID (10 digits)" maxlength="10">
+      <input type="text" id="editContactAvatar" class="modal-input" placeholder="Avatar URL">
+    </div>
+    <div class="modal-footer">
+      <button class="modal-button" id="saveContactBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Settings</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <h4>Appearance</h4>
+      <select id="themeSelect" class="modal-input">
+        <option value="light">Light Theme</option>
+        <option value="dark">Dark Theme</option>
+      </select>
+      
+      <h4>Account Settings</h4>
+      <input type="email" id="settingsEmail" class="modal-input" placeholder="Email">
+      <input type="password" id="settingsPassword" class="modal-input" placeholder="New Password (leave empty to keep current)">
+    </div>
+    <div class="modal-footer">
+      <button class="modal-button" id="saveSettingsBtn">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- Voice Recorder -->
+<div id="voiceRecorder" class="voice-recorder hidden">
+  <i class="fas fa-microphone"></i>
+  <div class="voice-recorder-timer">00:00</div>
+  <button class="voice-recorder-cancel"><i class="fas fa-times"></i></button>
+</div>
+
+<!-- Image Preview -->
+<div id="imagePreview" class="image-preview hidden">
+  <img id="previewImage" src="" alt="Preview">
+  <div class="image-preview-actions">
+    <button class="image-preview-button image-preview-cancel">Cancel</button>
+    <button class="image-preview-button image-preview-send">Send</button>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, addDoc, collection, query, where, orderBy, onSnapshot, serverTimestamp, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-storage.js";
 
 /* ===== Firebase Config ===== */
 const firebaseConfig = {
@@ -265,20 +621,85 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 /* ===== State ===== */
 let me = null;
 let currentChat = null;
 let unsubMessages = null;
 let unsubNotifications = null;
+let unsubTyping = null;
+let contacts = [];
+let selectedContact = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let recorderTimer = null;
+let recorderSeconds = 0;
+let messageQueue = [];
+
+/* ===== DOM Elements ===== */
+const $ = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
 
 /* ===== Helpers ===== */
-const $ = sel => document.querySelector(sel);
 function toast(msg) {
   const t = $("#toast");
   t.textContent = msg;
   t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// Optimistically add message to UI
+function addMessageToUI(message, isMe = false) {
+  const box = $("#messages");
+  const div = document.createElement("div");
+  div.className = `msg ${isMe ? "me" : "them"}`;
+  div.textContent = message.text;
+  div.dataset.tempId = message.tempId || '';
+  
+  // Add message status
+  const statusDiv = document.createElement("div");
+  statusDiv.className = "message-status";
+  statusDiv.textContent = "Sending...";
+  div.appendChild(statusDiv);
+  
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  
+  // Animation
+  setTimeout(() => {
+    div.style.opacity = "1";
+    div.style.transform = "translateY(0)";
+  }, 10);
+}
+
+// Update message status in UI
+function updateMessageStatus(tempId, status) {
+  const messageElement = $(`[data-temp-id="${tempId}"]`);
+  if (messageElement) {
+    const statusElement = messageElement.querySelector(".message-status");
+    if (statusElement) {
+      statusElement.textContent = status;
+    }
+  }
 }
 
 /* ===== Auth UI Switch ===== */
@@ -308,6 +729,7 @@ onAuthStateChanged(auth, async user => {
     me = null;
     if (unsubMessages) unsubMessages();
     if (unsubNotifications) unsubNotifications();
+    if (unsubTyping) unsubTyping();
   }
 });
 
@@ -347,22 +769,40 @@ $("#loginBtn").onclick = async () => {
 };
 
 /* ===== Logout ===== */
-// Adding a logout button to the sidebar header
-const sidebarHeader = document.querySelector('.sidebar-header');
-const logoutBtn = document.createElement('button');
-logoutBtn.textContent = 'Logout';
-logoutBtn.id = 'logoutBtn';
-logoutBtn.style.background = 'none';
-logoutBtn.style.border = 'none';
-logoutBtn.style.cursor = 'pointer';
-logoutBtn.style.fontSize = '14px';
-logoutBtn.style.color = '#666';
-sidebarHeader.appendChild(logoutBtn);
+// Adding a logout button to the settings panel
+const settingsPanel = document.createElement('div');
+settingsPanel.className = 'settings-panel hidden';
+settingsPanel.id = 'settingsPanel';
+settingsPanel.innerHTML = `
+  <div class="settings-option" id="settingsOption"><i class="fas fa-cog"></i> Settings</div>
+  <div class="settings-option" id="logoutOption"><i class="fas fa-sign-out-alt"></i> Logout</div>
+`;
+document.body.appendChild(settingsPanel);
 
-$("#logoutBtn").onclick = async () => { 
+$("#settingsBtn").addEventListener('click', (e) => {
+  e.stopPropagation();
+  const panel = $("#settingsPanel");
+  panel.classList.toggle('hidden');
+});
+
+$("#logoutOption").addEventListener('click', async () => {
   await signOut(auth); 
-  toast("Logged out"); 
-};
+  toast("Logged out");
+  $("#settingsPanel").classList.add('hidden');
+});
+
+$("#settingsOption").addEventListener('click', () => {
+  $("#settingsModal").classList.remove('hidden');
+  $("#settingsPanel").classList.add('hidden');
+  $("#settingsEmail").value = me.email;
+});
+
+// Close settings panel when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.settings-button') && !e.target.closest('.settings-panel')) {
+    $("#settingsPanel").classList.add('hidden');
+  }
+});
 
 /* ===== Load Contacts ===== */
 async function loadContacts() {
@@ -370,11 +810,15 @@ async function loadContacts() {
   const snap = await getDocs(q);
   const list = $("#contactsList");
   list.innerHTML = "";
+  contacts = [];
+  
   snap.forEach(docSnap => {
     const u = docSnap.data();
     if (u.uid !== me.uid) {
+      contacts.push(u);
       const div = document.createElement("div");
       div.className = "contact";
+      div.dataset.uid = u.uid;
       div.innerHTML = `
         <img src="${u.avatar || 'https://via.placeholder.com/40'}" />
         <div class="contact-info">
@@ -382,11 +826,112 @@ async function loadContacts() {
           <div class="id">${u.numberId}</div>
         </div>
       `;
-      div.onclick = () => openChat(u);
+      div.addEventListener('click', () => openChat(u));
+      div.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        selectedContact = u;
+        const contextMenu = $("#contextMenu");
+        contextMenu.style.left = `${e.pageX}px`;
+        contextMenu.style.top = `${e.pageY}px`;
+        contextMenu.classList.remove('hidden');
+      });
       list.appendChild(div);
     }
   });
+  
+  // Close context menu when clicking elsewhere
+  document.addEventListener('click', () => {
+    $("#contextMenu").classList.add('hidden');
+  });
 }
+
+// Context menu actions
+$("#contextMenu").addEventListener('click', (e) => {
+  const action = e.target.dataset.action;
+  if (action === 'edit') {
+    $("#editContactModal").classList.remove('hidden');
+    $("#editContactName").value = selectedContact.name || '';
+    $("#editContactNumberId").value = selectedContact.numberId;
+    $("#editContactAvatar").value = selectedContact.avatar || '';
+  } else if (action === 'delete') {
+    // In a real app, you would delete from Firestore
+    toast("Delete functionality would be implemented here");
+  }
+});
+
+/* ===== Add Contact Modal ===== */
+$("#addContactBtn").addEventListener('click', () => {
+  $("#addContactModal").classList.remove('hidden');
+});
+
+$("#addContactModalBtn").addEventListener('click', async () => {
+  const name = $("#contactName").value.trim();
+  const numberId = $("#contactNumberId").value.trim();
+  const avatar = $("#contactAvatar").value.trim();
+  
+  if (!numberId || numberId.length !== 10) {
+    return toast("Number ID must be 10 digits");
+  }
+  
+  // Check if user exists with this numberId
+  const q = query(collection(db, "users"), where("numberId", "==", numberId));
+  const querySnapshot = await getDocs(q);
+  
+  if (querySnapshot.empty) {
+    return toast("No user found with this Number ID");
+  }
+  
+  // In a real app, you would add to user's contacts in Firestore
+  toast("Contact added successfully");
+  $("#addContactModal").classList.add('hidden');
+  loadContacts();
+});
+
+/* ===== Save Contact Changes ===== */
+$("#saveContactBtn").addEventListener('click', async () => {
+  const name = $("#editContactName").value.trim();
+  const numberId = $("#editContactNumberId").value.trim();
+  const avatar = $("#editContactAvatar").value.trim();
+  
+  if (!numberId || numberId.length !== 10) {
+    return toast("Number ID must be 10 digits");
+  }
+  
+  // In a real app, you would update in Firestore
+  toast("Contact updated successfully");
+  $("#editContactModal").classList.add('hidden');
+  loadContacts();
+});
+
+/* ===== Save Settings ===== */
+$("#saveSettingsBtn").addEventListener('click', async () => {
+  const email = $("#settingsEmail").value.trim();
+  const password = $("#settingsPassword").value;
+  
+  try {
+    if (email !== me.email) {
+      await updateEmail(auth.currentUser, email);
+      await updateDoc(doc(db, "users", me.uid), { email });
+      toast("Email updated successfully");
+    }
+    
+    if (password) {
+      await updatePassword(auth.currentUser, password);
+      toast("Password updated successfully");
+    }
+    
+    $("#settingsModal").classList.add('hidden');
+  } catch (error) {
+    toast(error.message);
+  }
+});
+
+/* ===== Close Modals ===== */
+$$('.modal-close').forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.closest('.modal').classList.add('hidden');
+  });
+});
 
 /* ===== Open Chat ===== */
 function openChat(user) {
@@ -396,31 +941,97 @@ function openChat(user) {
   $("#chatNumberId").textContent = user.numberId;
   loadMessages();
   clearBadge(user.uid);
+  listenForTyping();
 }
 
 /* ===== Send Message ===== */
-$("#sendBtn").onclick = async () => {
+$("#sendBtn").onclick = sendMessage;
+
+$("#messageText").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    sendMessage();
+  }
+});
+
+// Typing indicator
+const updateTypingIndicator = debounce(async () => {
+  if (!currentChat) return;
+  
+  // Set typing indicator in Firestore
+  await setDoc(doc(db, "typing", me.uid), {
+    userId: me.uid,
+    chatWith: currentChat.uid,
+    isTyping: false,
+    timestamp: serverTimestamp()
+  });
+}, 1000);
+
+$("#messageText").addEventListener("input", async () => {
+  if (!currentChat) return;
+  
+  // Set typing indicator in Firestore
+  await setDoc(doc(db, "typing", me.uid), {
+    userId: me.uid,
+    chatWith: currentChat.uid,
+    isTyping: true,
+    timestamp: serverTimestamp()
+  });
+  
+  updateTypingIndicator();
+});
+
+async function sendMessage() {
   if (!currentChat) return toast("Select a contact first");
   const text = $("#messageText").value.trim();
   if (!text) return;
-  await addDoc(collection(db, "messages"), {
-    senderId: me.uid,
-    senderName: me.name || me.email,
-    receiverId: currentChat.uid,
-    receiverNumberId: currentChat.numberId,
-    text,
-    createdAt: serverTimestamp(),
-    unread: true
+  
+  // Clear typing indicator
+  await setDoc(doc(db, "typing", me.uid), {
+    userId: me.uid,
+    chatWith: currentChat.uid,
+    isTyping: false,
+    timestamp: serverTimestamp()
   });
-  $("#messageText").value = "";
-};
-
-// Add event listener for Enter key in message input
-$("#messageText").addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    $("#sendBtn").click();
+  
+  // Generate a temporary ID for optimistic UI update
+  const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Optimistically add message to UI
+  addMessageToUI({
+    text,
+    tempId
+  }, true);
+  
+  // Update status to sending
+  updateMessageStatus(tempId, "Sending...");
+  
+  try {
+    // Send to Firestore
+    const docRef = await addDoc(collection(db, "messages"), {
+      senderId: me.uid,
+      senderName: me.name || me.email,
+      receiverId: currentChat.uid,
+      receiverNumberId: currentChat.numberId,
+      text,
+      createdAt: serverTimestamp(),
+      unread: true
+    });
+    
+    // Update status to sent
+    updateMessageStatus(tempId, "Sent");
+    
+    // After a short delay, update to delivered
+    setTimeout(() => {
+      updateMessageStatus(tempId, "Delivered");
+    }, 1000);
+    
+    $("#messageText").value = "";
+  } catch (error) {
+    // Update status to failed
+    updateMessageStatus(tempId, "Failed");
+    toast("Failed to send message: " + error.message);
   }
-});
+}
 
 /* ===== Load Messages ===== */
 function loadMessages() {
@@ -431,20 +1042,179 @@ function loadMessages() {
     where("receiverId", "in", [me.uid, currentChat.uid]),
     orderBy("createdAt")
   );
+  
   unsubMessages = onSnapshot(q, snap => {
     const box = $("#messages");
     box.innerHTML = "";
+    
     snap.forEach(docSnap => {
       const m = docSnap.data();
       const mine = m.senderId === me.uid;
       const div = document.createElement("div");
       div.className = `msg ${mine ? "me" : "them"}`;
       div.textContent = m.text;
+      
+      // Add message status
+      const statusDiv = document.createElement("div");
+      statusDiv.className = "message-status";
+      statusDiv.textContent = mine ? "Delivered" : "";
+      div.appendChild(statusDiv);
+      
       box.appendChild(div);
     });
+    
     box.scrollTop = box.scrollHeight;
+  }, error => {
+    console.error("Error loading messages:", error);
+    toast("Error loading messages");
   });
 }
+
+/* ===== Listen for Typing ===== */
+function listenForTyping() {
+  if (unsubTyping) unsubTyping();
+  
+  const q = query(
+    collection(db, "typing"),
+    where("chatWith", "==", me.uid),
+    where("userId", "==", currentChat.uid)
+  );
+  
+  unsubTyping = onSnapshot(q, snap => {
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      const typingIndicator = $("#typingIndicator");
+      
+      if (data.isTyping) {
+        typingIndicator.classList.remove("hidden");
+      } else {
+        typingIndicator.classList.add("hidden");
+      }
+    });
+  });
+}
+
+/* ===== Voice Message ===== */
+$("#voiceBtn").addEventListener('click', async () => {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    stopRecording();
+    return;
+  }
+  
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    
+    mediaRecorder.ondataavailable = (event) => {
+      audioChunks.push(event.data);
+    };
+    
+    mediaRecorder.onstop = async () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      
+      // Upload to Firebase Storage
+      const storageRef = ref(storage, `voice_messages/${Date.now()}.wav`);
+      await uploadBytes(storageRef, audioBlob);
+      const audioUrl = await getDownloadURL(storageRef);
+      
+      // Send message with audio URL
+      await addDoc(collection(db, "messages"), {
+        senderId: me.uid,
+        senderName: me.name || me.email,
+        receiverId: currentChat.uid,
+        receiverNumberId: currentChat.numberId,
+        audioUrl,
+        createdAt: serverTimestamp(),
+        unread: true
+      });
+      
+      // Clean up
+      stream.getTracks().forEach(track => track.stop());
+      $("#voiceRecorder").classList.add('hidden');
+      clearInterval(recorderTimer);
+      recorderSeconds = 0;
+    };
+    
+    mediaRecorder.start();
+    $("#voiceRecorder").classList.remove('hidden');
+    
+    // Start timer
+    recorderSeconds = 0;
+    recorderTimer = setInterval(() => {
+      recorderSeconds++;
+      $(".voice-recorder-timer").textContent = formatTime(recorderSeconds);
+    }, 1000);
+    
+  } catch (error) {
+    toast("Error accessing microphone: " + error.message);
+  }
+});
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
+}
+
+$(".voice-recorder-cancel").addEventListener('click', () => {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    $("#voiceRecorder").classList.add('hidden');
+    clearInterval(recorderTimer);
+    recorderSeconds = 0;
+  }
+});
+
+/* ===== Image Upload ===== */
+$("#imageBtn").addEventListener('click', () => {
+  $("#imageUpload").click();
+});
+
+$("#imageUpload").addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  if (!file.type.match('image.*')) {
+    return toast("Please select an image file");
+  }
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    $("#previewImage").src = e.target.result;
+    $("#imagePreview").classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+});
+
+$(".image-preview-cancel").addEventListener('click', () => {
+  $("#imagePreview").classList.add('hidden');
+  $("#imageUpload").value = '';
+});
+
+$(".image-preview-send").addEventListener('click', async () => {
+  const file = $("#imageUpload").files[0];
+  if (!file) return;
+  
+  // Upload to Firebase Storage
+  const storageRef = ref(storage, `images/${Date.now()}_${file.name}`);
+  await uploadBytes(storageRef, file);
+  const imageUrl = await getDownloadURL(storageRef);
+  
+  // Send message with image URL
+  await addDoc(collection(db, "messages"), {
+    senderId: me.uid,
+    senderName: me.name || me.email,
+    receiverId: currentChat.uid,
+    receiverNumberId: currentChat.numberId,
+    imageUrl,
+    createdAt: serverTimestamp(),
+    unread: true
+  });
+  
+  $("#imagePreview").classList.add('hidden');
+  $("#imageUpload").value = '';
+});
 
 /* ===== Notifications ===== */
 function listenForNotifications() {
@@ -465,25 +1235,22 @@ function listenForNotifications() {
 }
 
 function showBadge(uid) {
-  const contacts = document.querySelectorAll(".contact");
-  contacts.forEach(c => {
-    const idText = c.querySelector(".id").textContent;
-    if (currentChat && currentChat.uid === uid) return; // already open
-    if (!c.querySelector(".badge")) {
-      const badge = document.createElement("div");
-      badge.className = "badge";
-      badge.textContent = "1";
-      c.appendChild(badge);
-    }
-  });
+  const contactElement = $(`.contact[data-uid="${uid}"]`);
+  if (contactElement && !contactElement.querySelector('.badge')) {
+    const badge = document.createElement("div");
+    badge.className = "badge";
+    badge.textContent = "1";
+    contactElement.appendChild(badge);
+  }
 }
 
 function clearBadge(uid) {
-  const contacts = document.querySelectorAll(".contact");
-  contacts.forEach(c => {
-    const badge = c.querySelector(".badge");
+  const contactElement = $(`.contact[data-uid="${uid}"]`);
+  if (contactElement) {
+    const badge = contactElement.querySelector('.badge');
     if (badge) badge.remove();
-  });
+  }
+  
   // Mark messages as read
   const q = query(
     collection(db, "messages"),
@@ -498,6 +1265,5 @@ function clearBadge(uid) {
   });
 }
 </script>
-<!-- End of Firebase Logic -->
 </body>
 </html>
