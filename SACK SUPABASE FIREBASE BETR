@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tajib Lite — Firebase</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0; font-family: sans-serif; background: #f5f6fa;
+      display: flex; align-items: center; justify-content: center; height: 100vh;
+    }
+    .hidden { display: none !important; }
+    #auth, #app {
+      width: 100%; max-width: 400px; padding: 20px;
+      background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    input, textarea {
+      width: 100%; padding: 10px; margin-bottom: 10px;
+      border-radius: 8px; border: 1px solid #ccc; font-size: 14px;
+    }
+    button {
+      background: linear-gradient(135deg, #3ecf8e, #2ebd7b);
+      color: #fff; border: none; padding: 10px 14px;
+      border-radius: 8px; font-weight: 600; cursor: pointer;
+    }
+    button.secondary { background: #ccc; color: #000; }
+    .messages {
+      border: 1px solid #ccc; border-radius: 8px;
+      padding: 10px; height: 300px; overflow-y: auto; margin-bottom: 10px;
+      background: #fafafa;
+    }
+    .msg { max-width: 80%; padding: 8px 10px; border-radius: 8px; margin: 4px 0; }
+    .me { background: #0a84ff; color: #fff; margin-left: auto; }
+    .them { background: #e0e0e0; }
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: rgba(0,0,0,0.85); color: #fff; padding: 10px 16px;
+      border-radius: 8px; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s; z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- Auth Screen -->
+<div id="auth">
+  <h2>Tajib Lite — Firebase</h2>
+  <div id="loginForm">
+    <input id="loginEmail" type="email" placeholder="Email" />
+    <input id="loginPassword" type="password" placeholder="Password" />
+    <button id="loginBtn">Log In</button>
+    <p style="font-size:13px;color:#666">No account? <a href="#" id="showSignup">Sign up</a></p>
+  </div>
+  <div id="signupForm" class="hidden">
+    <input id="signupEmail" type="email" placeholder="Email" />
+    <input id="signupPassword" type="password" placeholder="Password" />
+    <input id="signupCode" type="text" maxlength="10" placeholder="Number ID (10 digits)" />
+    <button id="signupBtn">Sign Up</button>
+    <p style="font-size:13px;color:#666">Have an account? <a href="#" id="showLogin">Log in</a></p>
+  </div>
+</div>
+
+<!-- App Screen -->
+<div id="app" class="hidden">
+  <h2>Messages</h2>
+  <div class="messages" id="messages"></div>
+  <div id="newMessageForm" class="hidden">
+    <input id="friendId" type="text" maxlength="10" placeholder="Friend's Number ID" />
+    <textarea id="messageText" placeholder="Type your message..."></textarea>
+    <button id="sendBtn">Send</button>
+  </div>
+  <button id="newMsgBtn">+ New Message</button>
+  <button id="logoutBtn" class="secondary">Logout</button>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, addDoc, collection, query, where, orderBy, onSnapshot, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBQebZVAnxwEySzQZf3S4EpTW1YCFUTiHs",
+    authDomain: "tajibmessage.firebaseapp.com",
+    projectId: "tajibmessage",
+    storageBucket: "tajibmessage.firebasestorage.app",
+    messagingSenderId: "74585771811",
+    appId: "1:74585771811:web:c5d196f4ffd6acb8de4696",
+    measurementId: "G-QQJT29P8PS"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let me = null;
+  let friend = null;
+  let unsubMessages = null;
+
+  const $ = sel => document.querySelector(sel);
+  function toast(msg) {
+    const t = $("#toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2000);
+  }
+
+  $("#showSignup").onclick = () => {
+    $("#loginForm").classList.add("hidden");
+    $("#signupForm").classList.remove("hidden");
+  };
+  $("#showLogin").onclick = () => {
+    $("#signupForm").classList.add("hidden");
+    $("#loginForm").classList.remove("hidden");
+  };
+
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      const snap = await getDoc(doc(db, "users", user.uid));
+      me = snap.exists() ? snap.data() : null;
+      $("#auth").classList.add("hidden");
+      $("#app").classList.remove("hidden");
+    } else {
+      $("#auth").classList.remove("hidden");
+      $("#app").classList.add("hidden");
+    }
+  });
+
+  $("#signupBtn").onclick = async () => {
+    const email = $("#signupEmail").value.trim();
+    const pwd = $("#signupPassword").value;
+    const code = $("#signupCode").value.trim();
+    if (!email || !pwd || !code) return toast("Fill all fields");
+    if (code.length !== 10) return toast("Number ID must be 10 digits");
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, pwd);
+      await setDoc(doc(db, "users", cred.user.uid), {
+        uid: cred.user.uid,
+        email,
+        numberId: code
+      });
+      toast("Account created");
+    } catch (e) {
+      toast(e.message);
+    }
+  };
+
+  $("#loginBtn").onclick = async () => {
+    const email = $("#loginEmail").value.trim();
+    const pwd = $("#loginPassword").value;
+    if (!email || !pwd) return toast("Enter email and password");
+    try {
+      await signInWithEmailAndPassword(auth, email, pwd);
+      toast("Logged in");
+    } catch (e) {
+      toast(e.message);
+    }
+  };
+
+  $("#logoutBtn").onclick = async () => {
+    await signOut(auth);
+    toast("Logged out");
+  };
+
+  $("#newMsgBtn").onclick = () => {
+    $("#newMessageForm").classList.toggle("hidden");
+  };
+
+  $("#sendBtn").onclick = async () => {
+    const fid = $("#friendId").value.trim();
+    const text = $("#messageText").value.trim();
+    if (!fid || !text) return toast("Enter friend ID and message");
+
+    const q = query(collection(db, "users"), where("numberId", "==", fid));
+    const snap = await getDocs(q);
+    if (snap.empty) return toast("No user with that ID");
+
+    friend = snap.docs[0].data();
+
+    await addDoc(collection(db, "messages"), {
+      senderId: me.uid,
+      receiverId: friend.uid,
+      text,
+      createdAt: serverTimestamp()
+    });
+    $("#messageText").value = "";
+  };
+    function loadMessages() {
+    if (unsubMessages) unsubMessages();
+    if (!friend) return;
+    const q = query(
+      collection(db, "messages"),
+      where("senderId", "in", [me.uid, friend.uid]),
+      where("receiverId", "in", [me.uid, friend.uid]),
+      orderBy("createdAt")
+    );
+    unsubMessages = onSnapshot(q, snap => {
+      const box = $("#messages");
+      box.innerHTML = "";
+      snap.forEach(docSnap => {
+        const m = docSnap.data();
+        const mine = m.senderId === me.uid;
+        const div = document.createElement("div");
+        div.className = `msg ${mine ? "me" : "them"}`;
+        div.textContent = m.text;
+        box.appendChild(div);
+      });
+      box.scrollTop = box.scrollHeight;
+    });
+  }
+
+  $("#friendId").addEventListener("change", async () => {
+    const fid = $("#friendId").value.trim();
+    if (fid.length === 10) {
+      const q = query(collection(db, "users"), where("numberId", "==", fid));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        friend = snap.docs[0].data();
+        loadMessages();
+      }
+    }
+  });
+</script>
+</body>
+</html>
