@@ -152,7 +152,7 @@ input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(
         <div style="font-weight:700">Sign up</div>
         <input id="signupEmail" type="email" placeholder="Email" required />
         <input id="signupPassword" type="password" placeholder="Password" required />
-        <input id="signupCode" inputmode="numeric" maxlength="10" pattern="\d{10}" placeholder="Choose your 10-digit code" required />
+        <input id="signupCode" inputmode="numeric" maxlength="10" pattern="\d{10}" placeholder="Use your phone number (10 digits)" required />
         <button type="submit">Create account</button>
       </form>
     </div>
@@ -163,8 +163,8 @@ input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(
 
 <script>
 /* ===== Config ===== */
-const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR-ANON-KEY";
+const SUPABASE_URL = "https://rqiwzsenaaejtczzwsfk.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxaXd6c2VuYWFlanRjenp3c2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MDk0NDYsImV4cCI6MjA3MjM4NTQ0Nn0.UdDK7oOMZhZOQuKp8lD5VbNhSpYDr7LpLoq7J4MlvW4";
 
 /* ===== Init ===== */
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
