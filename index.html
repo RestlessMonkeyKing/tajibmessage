@@ -7,16 +7,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-* { box-sizing: border-box; }
+* { 
+  box-sizing: border-box; 
+  margin: 0;
+  padding: 0;
+}
 body {
-  margin: 0; 
   font-family: 'Inter', sans-serif; 
   background: #f5f6fa;
   height: 100vh; 
   display: flex; 
   flex-direction: column;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
-.hidden { display: none !important; }
+body.dark-theme {
+  background: #1a1a1a;
+  color: #f0f0f0;
+}
+.hidden { 
+  display: none !important; 
+}
 
 /* Auth Screen */
 #auth {
@@ -37,6 +47,15 @@ body {
   max-width: 400px;
   padding: 30px;
   text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.auth-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+.dark-theme .auth-container {
+  background: #2d2d2d;
+  color: #f0f0f0;
 }
 
 .auth-header {
@@ -49,11 +68,17 @@ body {
   font-weight: 700;
   color: #333;
 }
+.dark-theme .auth-header h2 {
+  color: #f0f0f0;
+}
 
 .auth-header p {
   margin: 0;
   color: #666;
   font-size: 14px;
+}
+.dark-theme .auth-header p {
+  color: #ccc;
 }
 
 .auth-form input {
@@ -66,6 +91,11 @@ body {
   font-family: 'Inter', sans-serif;
   transition: all 0.2s ease;
   outline: none;
+}
+.dark-theme .auth-form input {
+  background: #3d3d3d;
+  border-color: #555;
+  color: #f0f0f0;
 }
 
 .auth-form input:focus {
@@ -97,6 +127,9 @@ body {
   font-size: 14px;
   color: #666;
 }
+.dark-theme .auth-toggle {
+  color: #ccc;
+}
 
 .auth-toggle a {
   color: #667eea;
@@ -107,35 +140,126 @@ body {
 
 /* Layout */
 #app {
-  flex: 1; display: flex; height: 100%;
+  flex: 1; 
+  display: flex; 
+  height: 100%;
+  opacity: 0;
+  animation: fadeIn 0.5s ease forwards;
 }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .sidebar {
-  width: 280px; background: #fff; border-right: 1px solid #ddd;
-  display: flex; flex-direction: column;
+  width: 280px; 
+  background: #fff; 
+  border-right: 1px solid #ddd;
+  display: flex; 
+  flex-direction: column;
+  transition: all 0.3s ease;
 }
+.dark-theme .sidebar {
+  background: #2d2d2d;
+  border-color: #444;
+}
+
 .sidebar-header {
-  padding: 15px; display: flex; justify-content: space-between; align-items: center;
+  padding: 15px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
   border-bottom: 1px solid #ddd;
 }
-.sidebar-header h2 { margin: 0; font-size: 18px; }
+.dark-theme .sidebar-header {
+  border-color: #444;
+}
+
+.sidebar-header h2 { 
+  margin: 0; 
+  font-size: 18px; 
+}
+.dark-theme .sidebar-header h2 {
+  color: #f0f0f0;
+}
+
 .contacts {
-  flex: 1; overflow-y: auto;
+  flex: 1; 
+  overflow-y: auto;
 }
 .contact {
-  display: flex; align-items: center; padding: 10px; cursor: pointer;
-  border-bottom: 1px solid #f0f0f0; position: relative;
+  display: flex; 
+  align-items: center; 
+  padding: 10px; 
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0; 
+  position: relative;
+  transition: background-color 0.2s ease;
 }
-.contact:hover { background: #f9f9f9; }
+.dark-theme .contact {
+  border-color: #444;
+}
+
+.contact:hover { 
+  background: #f9f9f9; 
+}
+.dark-theme .contact:hover { 
+  background: #3d3d3d; 
+}
+
 .contact img {
-  width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;
+  width: 40px; 
+  height: 40px; 
+  border-radius: 50%; 
+  margin-right: 10px; 
+  object-fit: cover;
+  transition: transform 0.2s ease;
 }
-.contact-info { flex: 1; }
-.contact-info .name { font-weight: bold; }
-.contact-info .id { font-size: 12px; color: #666; }
+.contact:hover img {
+  transform: scale(1.1);
+}
+
+.contact-info { 
+  flex: 1; 
+  overflow: hidden;
+}
+.contact-info .name { 
+  font-weight: bold; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dark-theme .contact-info .name {
+  color: #f0f0f0;
+}
+
+.contact-info .id { 
+  font-size: 12px; 
+  color: #666; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dark-theme .contact-info .id {
+  color: #aaa;
+}
+
 .badge {
-  background: #ff4757; color: #fff; font-size: 11px; padding: 2px 6px;
-  border-radius: 10px; position: absolute; right: 10px; top: 50%;
+  background: #ff4757; 
+  color: #fff; 
+  font-size: 11px; 
+  padding: 2px 6px;
+  border-radius: 10px; 
+  position: absolute; 
+  right: 10px; 
+  top: 50%;
   transform: translateY(-50%);
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0% { transform: translateY(-50%) scale(1); }
+  50% { transform: translateY(-50%) scale(1.1); }
+  100% { transform: translateY(-50%) scale(1); }
 }
 
 /* Context Menu */
@@ -147,26 +271,54 @@ body {
   z-index: 1000;
   padding: 8px 0;
   width: 200px;
+  animation: slideIn 0.2s ease;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.dark-theme .context-menu {
+  background: #3d3d3d;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .context-menu-item {
   padding: 8px 16px;
   cursor: pointer;
   font-size: 14px;
+  transition: background-color 0.2s ease;
 }
 .context-menu-item:hover {
   background: #f0f0f0;
 }
+.dark-theme .context-menu-item:hover {
+  background: #555;
+}
 
 /* Chat area */
 .chat {
-  flex: 1; display: flex; flex-direction: column;
+  flex: 1; 
+  display: flex; 
+  flex-direction: column;
 }
 .chat-header {
-  padding: 15px; border-bottom: 1px solid #ddd; display: flex; align-items: center;
+  padding: 15px; 
+  border-bottom: 1px solid #ddd; 
+  display: flex; 
+  align-items: center;
+  transition: background-color 0.3s ease;
 }
+.dark-theme .chat-header {
+  border-color: #444;
+  background: #2d2d2d;
+}
+
 .chat-header img {
-  width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;
+  width: 40px; 
+  height: 40px; 
+  border-radius: 50%; 
+  margin-right: 10px; 
+  object-fit: cover;
 }
 .typing-indicator {
   display: flex;
@@ -174,6 +326,9 @@ body {
   margin-left: 10px;
   font-size: 12px;
   color: #666;
+}
+.dark-theme .typing-indicator {
+  color: #aaa;
 }
 
 .typing-dots {
@@ -189,6 +344,9 @@ body {
   margin: 0 1px;
   animation: typingAnimation 1.4s infinite ease-in-out;
 }
+.dark-theme .typing-dot {
+  background-color: #aaa;
+}
 
 .typing-dot:nth-child(1) { animation-delay: 0s; }
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
@@ -200,27 +358,61 @@ body {
 }
 
 .chat-messages {
-  flex: 1; padding: 15px; overflow-y: auto; background: #fafafa;
+  flex: 1; 
+  padding: 15px; 
+  overflow-y: auto; 
+  background: #fafafa;
+  transition: background-color 0.3s ease;
+}
+.dark-theme .chat-messages {
+  background: #222;
 }
 
 .msg {
-  max-width: 70%; padding: 12px 16px; border-radius: 18px; margin: 6px 0;
-  word-wrap: break-word; font-size: 15px;
+  max-width: 70%; 
+  padding: 12px 16px; 
+  border-radius: 18px; 
+  margin: 6px 0;
+  word-wrap: break-word; 
+  font-size: 15px;
   animation: msgAppear 0.3s ease;
+  transition: transform 0.2s ease;
+}
+.msg:hover {
+  transform: scale(1.01);
 }
 @keyframes msgAppear {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.me { background: #0a84ff; color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
-.them { background: #e0e0e0; border-bottom-left-radius: 4px; }
+.me { 
+  background: #0a84ff; 
+  color: #fff; 
+  margin-left: auto; 
+  border-bottom-right-radius: 4px; 
+}
+.them { 
+  background: #e0e0e0; 
+  border-bottom-left-radius: 4px; 
+}
+.dark-theme .them {
+  background: #3d3d3d;
+  color: #f0f0f0;
+}
 
 .read-receipt {
   display: flex;
   justify-content: flex-end;
   margin-top: 2px;
   margin-bottom: 5px;
+  align-items: center;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.5s ease;
+}
+.dark-theme .read-receipt {
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .read-receipt img {
@@ -232,22 +424,63 @@ body {
 
 /* Input bar */
 .chat-input {
-  display: flex; align-items: center; padding: 10px; border-top: 1px solid #ddd;
+  display: flex; 
+  align-items: center; 
+  padding: 10px; 
+  border-top: 1px solid #ddd;
   background: #fff;
   position: relative;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+.dark-theme .chat-input {
+  background: #2d2d2d;
+  border-color: #444;
 }
 
 .chat-input input[type="text"] {
-  flex: 1; padding: 12px 16px; border-radius: 20px; border: 1px solid #ccc;
-  font-size: 14px; outline: none; font-family: 'Inter', sans-serif;
+  flex: 1; 
+  padding: 12px 16px; 
+  border-radius: 20px; 
+  border: 1px solid #ccc;
+  font-size: 14px; 
+  outline: none; 
+  font-family: 'Inter', sans-serif;
+  transition: all 0.3s ease;
+}
+.dark-theme .chat-input input[type="text"] {
+  background: #3d3d3d;
+  border-color: #555;
+  color: #f0f0f0;
+}
+
+.chat-input input[type="text"]:focus {
+  border-color: #0a84ff;
+  box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.1);
 }
 
 .chat-input button {
-  background: none; border: none; margin-left: 8px; cursor: pointer;
-  font-size: 20px; padding: 8px; border-radius: 50%;
-  transition: background-color 0.2s;
+  background: none; 
+  border: none; 
+  margin-left: 8px; 
+  cursor: pointer;
+  font-size: 20px; 
+  padding: 8px; 
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
 }
-.chat-input button:hover { background-color: #f0f0f0; color: #0a84ff; }
+.chat-input button:hover { 
+  background-color: #f0f0f0; 
+  color: #0a84ff; 
+  transform: scale(1.1);
+}
+.dark-theme .chat-input button:hover { 
+  background-color: #444; 
+}
 
 /* Modals */
 .modal {
@@ -261,37 +494,56 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  animation: fadeIn 0.3s ease;
 }
 
 .modal-content {
   background: white;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 25px;
   width: 90%;
   max-width: 400px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: scaleIn 0.3s ease;
+}
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.dark-theme .modal-content {
+  background: #2d2d2d;
+  color: #f0f0f0;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .modal-header h3 {
   margin: 0;
+  font-size: 20px;
 }
 
 .modal-close {
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 24px;
   cursor: pointer;
+  color: #999;
+  transition: color 0.2s ease;
+}
+.modal-close:hover {
+  color: #333;
+}
+.dark-theme .modal-close:hover {
+  color: #f0f0f0;
 }
 
 .modal-body {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .modal-footer {
@@ -301,30 +553,62 @@ body {
 
 .modal-input {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 12px 14px;
+  margin-bottom: 15px;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s ease;
+  outline: none;
+}
+.dark-theme .modal-input {
+  background: #3d3d3d;
+  border-color: #555;
+  color: #f0f0f0;
+}
+
+.modal-input:focus {
+  border-color: #0a84ff;
+  box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.1);
 }
 
 .modal-button {
-  padding: 10px 15px;
+  padding: 12px 20px;
   background: #0a84ff;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   margin-left: 10px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.modal-button:hover {
+  background: #0077e6;
+  transform: translateY(-2px);
 }
 
 /* Toast */
 .toast {
-  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px);
-  background: rgba(0,0,0,0.85); color: #fff; padding: 12px 20px;
-  border-radius: 12px; opacity: 0; pointer-events: none;
-  transition: opacity 0.3s, transform 0.3s; z-index: 999; font-size: 14px;
+  position: fixed; 
+  bottom: 20px; 
+  left: 50%; 
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(0,0,0,0.85); 
+  color: #fff; 
+  padding: 12px 20px;
+  border-radius: 12px; 
+  opacity: 0; 
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s; 
+  z-index: 999; 
+  font-size: 14px;
 }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.show { 
+  opacity: 1; 
+  transform: translateX(-50%) translateY(0); 
+}
 
 /* Settings */
 .settings-button {
@@ -334,6 +618,14 @@ body {
   cursor: pointer;
   color: #666;
   margin-left: 10px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.settings-button:hover {
+  color: #0a84ff;
+  transform: rotate(30deg);
+}
+.dark-theme .settings-button {
+  color: #aaa;
 }
 
 .settings-panel {
@@ -341,18 +633,27 @@ body {
   top: 50px;
   right: 10px;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   padding: 15px;
   width: 200px;
   z-index: 100;
+  animation: slideIn 0.2s ease;
+}
+.dark-theme .settings-panel {
+  background: #3d3d3d;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .settings-option {
-  padding: 8px 0;
+  padding: 10px 0;
   cursor: pointer;
   display: flex;
   align-items: center;
+  transition: color 0.2s ease;
+}
+.settings-option:hover {
+  color: #0a84ff;
 }
 
 .settings-option i {
@@ -366,16 +667,22 @@ body {
   bottom: 70px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  padding: 15px;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 15px 20px;
   border-radius: 50px;
   display: flex;
   align-items: center;
   color: white;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 .voice-recorder-timer {
   margin: 0 15px;
+  font-weight: 500;
 }
 
 .voice-recorder-cancel {
@@ -386,6 +693,13 @@ body {
   height: 30px;
   border-radius: 50%;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+.voice-recorder-cancel:hover {
+  background: #ff3742;
 }
 
 /* Image Preview */
@@ -395,15 +709,20 @@ body {
   left: 50%;
   transform: translateX(-50%);
   background: white;
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  max-width: 200px;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  max-width: 250px;
+  animation: slideUp 0.3s ease;
+}
+.dark-theme .image-preview {
+  background: #3d3d3d;
 }
 
 .image-preview img {
   max-width: 100%;
-  border-radius: 4px;
+  border-radius: 8px;
+  margin-bottom: 10px;
 }
 
 .image-preview-actions {
@@ -413,20 +732,30 @@ body {
 }
 
 .image-preview-button {
-  padding: 5px 10px;
+  padding: 8px 15px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .image-preview-cancel {
   background: #ff4757;
   color: white;
 }
+.image-preview-cancel:hover {
+  background: #ff3742;
+  transform: translateY(-2px);
+}
 
 .image-preview-send {
   background: #0a84ff;
   color: white;
+}
+.image-preview-send:hover {
+  background: #0077e6;
+  transform: translateY(-2px);
 }
 
 /* Message status indicators */
@@ -435,11 +764,113 @@ body {
   text-align: right;
   margin-top: 2px;
   color: rgba(255, 255, 255, 0.7);
+  animation: fadeIn 0.5s ease;
 }
 
 .them .message-status {
   color: rgba(0, 0, 0, 0.5);
   text-align: left;
+}
+.dark-theme .them .message-status {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Media messages */
+.media-message {
+  max-width: 250px;
+  margin: 6px 0;
+}
+
+.media-message img {
+  width: 100%;
+  border-radius: 12px;
+}
+
+.audio-message {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #f0f0f0;
+  border-radius: 20px;
+}
+.dark-theme .audio-message {
+  background: #3d3d3d;
+}
+
+.audio-message audio {
+  flex: 1;
+  height: 30px;
+}
+
+.audio-duration {
+  margin-left: 10px;
+  font-size: 12px;
+  color: #666;
+}
+.dark-theme .audio-duration {
+  color: #aaa;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.dark-theme ::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+.dark-theme ::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+.dark-theme ::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* File input */
+.hidden-input {
+  display: none;
+}
+
+/* Loading animation */
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.loading-dots {
+  display: flex;
+}
+
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #0a84ff;
+  margin: 0 4px;
+  animation: loadingAnimation 1.4s infinite ease-in-out;
+}
+
+.loading-dot:nth-child(1) { animation-delay: 0s; }
+.loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes loadingAnimation {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-10px); }
 }
 </style>
 </head>
@@ -469,6 +900,7 @@ body {
         <input id="signupEmail" type="email" placeholder="Email" />
         <input id="signupPassword" type="password" placeholder="Password" />
         <input id="signupCode" type="text" maxlength="10" placeholder="Number ID (10 digits)" />
+        <input id="signupDisplayName" type="text" placeholder="Display Name" />
         <button id="signupBtn">Sign Up</button>
       </div>
       <div class="auth-toggle">
@@ -512,7 +944,8 @@ body {
       <button id="voiceBtn"><i class="fas fa-microphone"></i></button>
       <button id="imageBtn"><i class="fas fa-image"></i></button>
       <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
-      <input type="file" id="imageUpload" accept="image/*" class="hidden" />
+      <input type="file" id="imageUpload" accept="image/*" class="hidden-input" />
+      <input type="file" id="audioUpload" accept="audio/*" class="hidden-input" />
     </div>
   </div>
 </div>
@@ -522,8 +955,8 @@ body {
 
 <!-- Context Menu -->
 <div id="contextMenu" class="context-menu hidden">
-  <div class="context-menu-item" data-action="edit">Edit Contact</div>
-  <div class="context-menu-item" data-action="delete">Delete Contact</div>
+  <div class="context-menu-item" data-action="edit"><i class="fas fa-edit"></i> Edit Contact</div>
+  <div class="context-menu-item" data-action="delete"><i class="fas fa-trash"></i> Delete Contact</div>
 </div>
 
 <!-- Add Contact Modal -->
@@ -534,9 +967,7 @@ body {
       <button class="modal-close">&times;</button>
     </div>
     <div class="modal-body">
-      <input type="text" id="contactName" class="modal-input" placeholder="Contact Name">
       <input type="text" id="contactNumberId" class="modal-input" placeholder="Number ID (10 digits)" maxlength="10">
-      <input type="text" id="contactAvatar" class="modal-input" placeholder="Avatar URL (optional)">
     </div>
     <div class="modal-footer">
       <button class="modal-button" id="addContactModalBtn">Add Contact</button>
@@ -552,8 +983,7 @@ body {
       <button class="modal-close">&times;</button>
     </div>
     <div class="modal-body">
-      <input type="text" id="editContactName" class="modal-input" placeholder="Contact Name">
-      <input type="text" id="editContactNumberId" class="modal-input" placeholder="Number ID (10 digits)" maxlength="10">
+      <input type="text" id="editContactName" class="modal-input" placeholder="Contact Display Name">
       <input type="text" id="editContactAvatar" class="modal-input" placeholder="Avatar URL">
     </div>
     <div class="modal-footer">
@@ -577,6 +1007,7 @@ body {
       </select>
       
       <h4>Account Settings</h4>
+      <input type="text" id="settingsDisplayName" class="modal-input" placeholder="Display Name">
       <input type="email" id="settingsEmail" class="modal-input" placeholder="Email">
       <input type="password" id="settingsPassword" class="modal-input" placeholder="New Password (leave empty to keep current)">
     </div>
@@ -635,7 +1066,7 @@ let mediaRecorder = null;
 let audioChunks = [];
 let recorderTimer = null;
 let recorderSeconds = 0;
-let messageQueue = [];
+let contactsMap = new Map();
 
 /* ===== DOM Elements ===== */
 const $ = sel => document.querySelector(sel);
@@ -672,13 +1103,28 @@ function addMessageToUI(message, isMe = false) {
   const box = $("#messages");
   const div = document.createElement("div");
   div.className = `msg ${isMe ? "me" : "them"}`;
-  div.textContent = message.text;
+  
+  if (message.text) {
+    div.textContent = message.text;
+  } else if (message.imageUrl) {
+    div.classList.add("media-message");
+    div.innerHTML = `<img src="${message.imageUrl}" alt="Sent image">`;
+  } else if (message.audioUrl) {
+    div.classList.add("media-message");
+    div.innerHTML = `
+      <div class="audio-message">
+        <audio controls src="${message.audioUrl}"></audio>
+        <span class="audio-duration">${message.duration || ''}</span>
+      </div>
+    `;
+  }
+  
   div.dataset.tempId = message.tempId || '';
   
   // Add message status
   const statusDiv = document.createElement("div");
   statusDiv.className = "message-status";
-  statusDiv.textContent = "Sending...";
+  statusDiv.textContent = isMe ? "Sending..." : "";
   div.appendChild(statusDiv);
   
   box.appendChild(div);
@@ -689,6 +1135,8 @@ function addMessageToUI(message, isMe = false) {
     div.style.opacity = "1";
     div.style.transform = "translateY(0)";
   }, 10);
+  
+  return div;
 }
 
 // Update message status in UI
@@ -700,6 +1148,21 @@ function updateMessageStatus(tempId, status) {
       statusElement.textContent = status;
     }
   }
+}
+
+// Add read receipt to the last message
+function addReadReceipt() {
+  if (!currentChat) return;
+  
+  const box = $("#messages");
+  const readReceipt = document.createElement("div");
+  readReceipt.className = "read-receipt";
+  readReceipt.innerHTML = `
+    <span>Seen</span>
+    <img src="${currentChat.avatar || 'https://via.placeholder.com/16'}" alt="${currentChat.name}">
+  `;
+  box.appendChild(readReceipt);
+  box.scrollTop = box.scrollHeight;
 }
 
 /* ===== Auth UI Switch ===== */
@@ -723,6 +1186,11 @@ onAuthStateChanged(auth, async user => {
     $("#app").classList.remove("hidden");
     loadContacts();
     listenForNotifications();
+    
+    // Load theme preference
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.body.classList.toggle('dark-theme', savedTheme === 'dark');
+    $("#themeSelect").value = savedTheme;
   } else {
     $("#auth").classList.remove("hidden");
     $("#app").classList.add("hidden");
@@ -738,15 +1206,18 @@ $("#signupBtn").onclick = async () => {
   const email = $("#signupEmail").value.trim();
   const pwd = $("#signupPassword").value;
   const code = $("#signupCode").value.trim();
-  if (!email || !pwd || !code) return toast("Fill all fields");
+  const displayName = $("#signupDisplayName").value.trim();
+  
+  if (!email || !pwd || !code || !displayName) return toast("Fill all fields");
   if (code.length !== 10) return toast("Number ID must be 10 digits");
+  
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, pwd);
     await setDoc(doc(db, "users", cred.user.uid), {
       uid: cred.user.uid,
       email,
       numberId: code,
-      name: email.split("@")[0],
+      name: displayName,
       avatar: ""
     });
     toast("Account created");
@@ -775,6 +1246,7 @@ settingsPanel.className = 'settings-panel hidden';
 settingsPanel.id = 'settingsPanel';
 settingsPanel.innerHTML = `
   <div class="settings-option" id="settingsOption"><i class="fas fa-cog"></i> Settings</div>
+  <div class="settings-option" id="themeOption"><i class="fas fa-moon"></i> Toggle Theme</div>
   <div class="settings-option" id="logoutOption"><i class="fas fa-sign-out-alt"></i> Logout</div>
 `;
 document.body.appendChild(settingsPanel);
@@ -791,10 +1263,18 @@ $("#logoutOption").addEventListener('click', async () => {
   $("#settingsPanel").classList.add('hidden');
 });
 
+$("#themeOption").addEventListener('click', () => {
+  const isDark = document.body.classList.toggle('dark-theme');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  $("#settingsPanel").classList.add('hidden');
+  toast(isDark ? "Dark mode enabled" : "Light mode enabled");
+});
+
 $("#settingsOption").addEventListener('click', () => {
   $("#settingsModal").classList.remove('hidden');
   $("#settingsPanel").classList.add('hidden');
   $("#settingsEmail").value = me.email;
+  $("#settingsDisplayName").value = me.name || "";
 });
 
 // Close settings panel when clicking outside
@@ -806,37 +1286,43 @@ document.addEventListener('click', (e) => {
 
 /* ===== Load Contacts ===== */
 async function loadContacts() {
-  const q = query(collection(db, "users"));
-  const snap = await getDocs(q);
+  const contactsRef = collection(db, "users", me.uid, "contacts");
+  const snap = await getDocs(contactsRef);
   const list = $("#contactsList");
   list.innerHTML = "";
   contacts = [];
+  contactsMap.clear();
+  
+  if (snap.empty) {
+    list.innerHTML = `<div style="text-align: center; padding: 20px; color: #666;">No contacts yet. Click + to add one.</div>`;
+    return;
+  }
   
   snap.forEach(docSnap => {
-    const u = docSnap.data();
-    if (u.uid !== me.uid) {
-      contacts.push(u);
-      const div = document.createElement("div");
-      div.className = "contact";
-      div.dataset.uid = u.uid;
-      div.innerHTML = `
-        <img src="${u.avatar || 'https://via.placeholder.com/40'}" />
-        <div class="contact-info">
-          <div class="name">${u.name || u.email}</div>
-          <div class="id">${u.numberId}</div>
-        </div>
-      `;
-      div.addEventListener('click', () => openChat(u));
-      div.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        selectedContact = u;
-        const contextMenu = $("#contextMenu");
-        contextMenu.style.left = `${e.pageX}px`;
-        contextMenu.style.top = `${e.pageY}px`;
-        contextMenu.classList.remove('hidden');
-      });
-      list.appendChild(div);
-    }
+    const contact = docSnap.data();
+    contacts.push(contact);
+    contactsMap.set(contact.uid, contact);
+    
+    const div = document.createElement("div");
+    div.className = "contact";
+    div.dataset.uid = contact.uid;
+    div.innerHTML = `
+      <img src="${contact.avatar || contact.originalAvatar || 'https://via.placeholder.com/40'}" />
+      <div class="contact-info">
+        <div class="name">${contact.name || contact.originalName || contact.email}</div>
+        <div class="id">${contact.numberId}</div>
+      </div>
+    `;
+    div.addEventListener('click', () => openChat(contact));
+    div.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      selectedContact = contact;
+      const contextMenu = $("#contextMenu");
+      contextMenu.style.left = `${e.pageX}px`;
+      contextMenu.style.top = `${e.pageY}px`;
+      contextMenu.classList.remove('hidden');
+    });
+    list.appendChild(div);
   });
   
   // Close context menu when clicking elsewhere
@@ -847,17 +1333,26 @@ async function loadContacts() {
 
 // Context menu actions
 $("#contextMenu").addEventListener('click', (e) => {
-  const action = e.target.dataset.action;
+  const action = e.target.closest('.context-menu-item')?.dataset.action;
   if (action === 'edit') {
     $("#editContactModal").classList.remove('hidden');
-    $("#editContactName").value = selectedContact.name || '';
-    $("#editContactNumberId").value = selectedContact.numberId;
-    $("#editContactAvatar").value = selectedContact.avatar || '';
+    $("#editContactName").value = selectedContact.name || selectedContact.originalName || "";
+    $("#editContactAvatar").value = selectedContact.avatar || selectedContact.originalAvatar || "";
   } else if (action === 'delete') {
-    // In a real app, you would delete from Firestore
-    toast("Delete functionality would be implemented here");
+    deleteContact(selectedContact.uid);
   }
 });
+
+// Delete contact
+async function deleteContact(contactUid) {
+  try {
+    await deleteDoc(doc(db, "users", me.uid, "contacts", contactUid));
+    toast("Contact deleted");
+    loadContacts();
+  } catch (error) {
+    toast("Error deleting contact: " + error.message);
+  }
+}
 
 /* ===== Add Contact Modal ===== */
 $("#addContactBtn").addEventListener('click', () => {
@@ -865,9 +1360,7 @@ $("#addContactBtn").addEventListener('click', () => {
 });
 
 $("#addContactModalBtn").addEventListener('click', async () => {
-  const name = $("#contactName").value.trim();
   const numberId = $("#contactNumberId").value.trim();
-  const avatar = $("#contactAvatar").value.trim();
   
   if (!numberId || numberId.length !== 10) {
     return toast("Number ID must be 10 digits");
@@ -881,23 +1374,43 @@ $("#addContactModalBtn").addEventListener('click', async () => {
     return toast("No user found with this Number ID");
   }
   
-  // In a real app, you would add to user's contacts in Firestore
+  const contactUser = querySnapshot.docs[0].data();
+  
+  // Check if contact already exists
+  const contactDoc = await getDoc(doc(db, "users", me.uid, "contacts", contactUser.uid));
+  if (contactDoc.exists()) {
+    return toast("Contact already exists");
+  }
+  
+  // Add to user's contacts collection
+  await setDoc(doc(db, "users", me.uid, "contacts", contactUser.uid), {
+    uid: contactUser.uid,
+    email: contactUser.email,
+    numberId: contactUser.numberId,
+    originalName: contactUser.name,
+    originalAvatar: contactUser.avatar,
+    name: contactUser.name, // Default to original name
+    avatar: contactUser.avatar // Default to original avatar
+  });
+  
   toast("Contact added successfully");
   $("#addContactModal").classList.add('hidden');
+  $("#contactNumberId").value = "";
   loadContacts();
 });
 
 /* ===== Save Contact Changes ===== */
 $("#saveContactBtn").addEventListener('click', async () => {
   const name = $("#editContactName").value.trim();
-  const numberId = $("#editContactNumberId").value.trim();
   const avatar = $("#editContactAvatar").value.trim();
   
-  if (!numberId || numberId.length !== 10) {
-    return toast("Number ID must be 10 digits");
-  }
+  // Update in user's contacts collection
+  await setDoc(doc(db, "users", me.uid, "contacts", selectedContact.uid), {
+    ...selectedContact,
+    name: name || selectedContact.originalName,
+    avatar: avatar || selectedContact.originalAvatar
+  }, { merge: true });
   
-  // In a real app, you would update in Firestore
   toast("Contact updated successfully");
   $("#editContactModal").classList.add('hidden');
   loadContacts();
@@ -907,6 +1420,7 @@ $("#saveContactBtn").addEventListener('click', async () => {
 $("#saveSettingsBtn").addEventListener('click', async () => {
   const email = $("#settingsEmail").value.trim();
   const password = $("#settingsPassword").value;
+  const displayName = $("#settingsDisplayName").value.trim();
   
   try {
     if (email !== me.email) {
@@ -915,15 +1429,31 @@ $("#saveSettingsBtn").addEventListener('click', async () => {
       toast("Email updated successfully");
     }
     
+    if (displayName && displayName !== me.name) {
+      await updateDoc(doc(db, "users", me.uid), { name: displayName });
+      toast("Display name updated successfully");
+    }
+    
     if (password) {
       await updatePassword(auth.currentUser, password);
       toast("Password updated successfully");
     }
     
     $("#settingsModal").classList.add('hidden');
+    
+    // Reload user data
+    const snap = await getDoc(doc(db, "users", me.uid));
+    me = snap.exists() ? snap.data() : null;
   } catch (error) {
     toast(error.message);
   }
+});
+
+// Theme selector change
+$("#themeSelect").addEventListener('change', (e) => {
+  const isDark = e.target.value === 'dark';
+  document.body.classList.toggle('dark-theme', isDark);
+  localStorage.setItem('theme', e.target.value);
 });
 
 /* ===== Close Modals ===== */
@@ -934,13 +1464,13 @@ $$('.modal-close').forEach(btn => {
 });
 
 /* ===== Open Chat ===== */
-function openChat(user) {
-  currentChat = user;
-  $("#chatAvatar").src = user.avatar || "https://via.placeholder.com/40";
-  $("#chatName").textContent = user.name || user.email;
-  $("#chatNumberId").textContent = user.numberId;
+function openChat(contact) {
+  currentChat = contact;
+  $("#chatAvatar").src = contact.avatar || contact.originalAvatar || "https://via.placeholder.com/40";
+  $("#chatName").textContent = contact.name || contact.originalName || contact.email;
+  $("#chatNumberId").textContent = contact.numberId;
   loadMessages();
-  clearBadge(user.uid);
+  clearBadge(contact.uid);
   listenForTyping();
 }
 
@@ -1007,7 +1537,7 @@ async function sendMessage() {
   
   try {
     // Send to Firestore
-    const docRef = await addDoc(collection(db, "messages"), {
+    await addDoc(collection(db, "messages"), {
       senderId: me.uid,
       senderName: me.name || me.email,
       receiverId: currentChat.uid,
@@ -1036,6 +1566,8 @@ async function sendMessage() {
 /* ===== Load Messages ===== */
 function loadMessages() {
   if (unsubMessages) unsubMessages();
+  
+  // Query for messages where I'm the sender or receiver with this specific contact
   const q = query(
     collection(db, "messages"),
     where("senderId", "in", [me.uid, currentChat.uid]),
@@ -1043,28 +1575,40 @@ function loadMessages() {
     orderBy("createdAt")
   );
   
-  unsubMessages = onSnapshot(q, snap => {
+  unsubMessages = onSnapshot(q, (snap) => {
     const box = $("#messages");
     box.innerHTML = "";
     
     snap.forEach(docSnap => {
       const m = docSnap.data();
       const mine = m.senderId === me.uid;
-      const div = document.createElement("div");
-      div.className = `msg ${mine ? "me" : "them"}`;
-      div.textContent = m.text;
       
-      // Add message status
-      const statusDiv = document.createElement("div");
-      statusDiv.className = "message-status";
-      statusDiv.textContent = mine ? "Delivered" : "";
-      div.appendChild(statusDiv);
+      let messageElement;
       
-      box.appendChild(div);
+      if (m.text) {
+        messageElement = addMessageToUI(m, mine);
+      } else if (m.imageUrl) {
+        messageElement = addMessageToUI(m, mine);
+      } else if (m.audioUrl) {
+        messageElement = addMessageToUI(m, mine);
+      }
+      
+      // Add read status for my messages
+      if (mine) {
+        const statusElement = messageElement.querySelector(".message-status");
+        if (statusElement) {
+          statusElement.textContent = "Delivered";
+          
+          // Add read receipt if this is the last message
+          if (docSnap === snap.docs[snap.docs.length - 1]) {
+            addReadReceipt();
+          }
+        }
+      }
     });
     
     box.scrollTop = box.scrollHeight;
-  }, error => {
+  }, (error) => {
     console.error("Error loading messages:", error);
     toast("Error loading messages");
   });
@@ -1111,12 +1655,23 @@ $("#voiceBtn").addEventListener('click', async () => {
     };
     
     mediaRecorder.onstop = async () => {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      const duration = recorderSeconds;
       
       // Upload to Firebase Storage
-      const storageRef = ref(storage, `voice_messages/${Date.now()}.wav`);
+      const storageRef = ref(storage, `voice_messages/${Date.now()}.webm`);
       await uploadBytes(storageRef, audioBlob);
       const audioUrl = await getDownloadURL(storageRef);
+      
+      // Generate a temporary ID for optimistic UI update
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Optimistically add message to UI
+      addMessageToUI({
+        audioUrl,
+        duration: formatTime(duration),
+        tempId
+      }, true);
       
       // Send message with audio URL
       await addDoc(collection(db, "messages"), {
@@ -1125,6 +1680,7 @@ $("#voiceBtn").addEventListener('click', async () => {
         receiverId: currentChat.uid,
         receiverNumberId: currentChat.numberId,
         audioUrl,
+        duration: formatTime(duration),
         createdAt: serverTimestamp(),
         unread: true
       });
@@ -1196,6 +1752,15 @@ $(".image-preview-send").addEventListener('click', async () => {
   const file = $("#imageUpload").files[0];
   if (!file) return;
   
+  // Generate a temporary ID for optimistic UI update
+  const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Optimistically add message to UI
+  addMessageToUI({
+    imageUrl: $("#previewImage").src,
+    tempId
+  }, true);
+  
   // Upload to Firebase Storage
   const storageRef = ref(storage, `images/${Date.now()}_${file.name}`);
   await uploadBytes(storageRef, file);
@@ -1227,8 +1792,17 @@ function listenForNotifications() {
     snap.docChanges().forEach(change => {
       if (change.type === "added") {
         const m = change.doc.data();
-        toast(`${m.senderName} messaged you`);
-        showBadge(m.senderId);
+        
+        // Only show toast if not in current chat
+        if (!currentChat || currentChat.uid !== m.senderId) {
+          const contact = contactsMap.get(m.senderId);
+          const contactName = contact ? (contact.name || contact.originalName) : m.senderName;
+          toast(`${contactName} messaged you`);
+          showBadge(m.senderId);
+        } else {
+          // If in current chat, mark as read immediately
+          updateDoc(doc(db, "messages", change.doc.id), { unread: false });
+        }
       }
     });
   });
@@ -1264,6 +1838,22 @@ function clearBadge(uid) {
     });
   });
 }
+
+// Close modals when clicking outside
+window.addEventListener('click', (e) => {
+  if (e.target.classList.contains('modal')) {
+    e.target.classList.add('hidden');
+  }
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  // Check for saved theme
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-theme');
+  }
+});
 </script>
 </body>
 </html>
