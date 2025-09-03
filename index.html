@@ -2,504 +2,256 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Minimal Messenger</title>
+<title>TajibMessage Lite</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
-:root{
-  --bg:#0f1115;--panel:#141821;--panel2:#0e131b;--text:#e6e9ef;--muted:#9aa4b2;
-  --accent:#4f8cff;--accent2:#7c5cff;--border:#1f2430;--me:#2a6df0;--them:#2b3344;
-  --radius:14px;--shadow:0 10px 30px rgba(0,0,0,.35)
+:root {
+  --bg: #fff; --text: #111; --muted: #666;
+  --accent: #3ecf8e; --accent2: #2ebd7b;
+  --me: #0a84ff; --them: #f2f5f9;
+  --radius: 12px; --shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
-*{box-sizing:border-box}html,body{height:100%}
-body{
-  margin:0;background:radial-gradient(1000px 800px at 0% 0%,#151a23 0%,#0f1115 45%),var(--bg);
-  color:var(--text);font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Inter,"Helvetica Neue",Arial
+body {
+  margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  background: var(--bg); color: var(--text);
+  display: flex; align-items: center; justify-content: center; height: 100vh;
 }
-button{
-  cursor:pointer;border:0;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));
-  padding:10px 14px;border-radius:10px;font-weight:600;transition:transform .12s ease,filter .2s ease;
-  box-shadow:var(--shadow)
+.hidden { display: none !important; }
+button {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; border: none; padding: 10px 14px;
+  border-radius: var(--radius); font-weight: 600; cursor: pointer;
 }
-button:hover{transform:translateY(-1px);filter:brightness(1.05)}
-button:disabled{opacity:.6;cursor:not-allowed;filter:grayscale(.2)}
-input,textarea{
-  width:100%;background:var(--panel2);color:var(--text);
-  border:1px solid var(--border);border-radius:10px;padding:10px 12px;outline:none;
-  transition:border-color .2s ease,box-shadow .2s ease,background .2s ease
+input, textarea {
+  width: 100%; padding: 10px; border-radius: var(--radius);
+  border: 1px solid #ccc; font-size: 14px;
 }
-input::placeholder,textarea::placeholder{color:var(--muted)}
-input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,140,255,.1)}
-
-.container{display:grid;grid-template-columns:340px 1fr;height:100vh}
-.panel{background:rgba(20,24,33,.7);backdrop-filter:blur(10px);border-right:1px solid var(--border)}
-.panel .inner{height:100%;display:grid;grid-template-rows:auto auto auto 1fr}
-.brand{display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid var(--border)}
-.logo{width:34px;height:34px;border-radius:10px;background:conic-gradient(from 240deg,var(--accent),var(--accent2))}
-.brand h1{font-size:16px;margin:0}
-.profile{padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border-bottom:1px solid var(--border)}
-.profile .id{font-size:12px;color:var(--muted)}
-.row{display:flex;gap:10px}
-.contacts{overflow:auto;padding:10px}
-.contact{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:12px;
-  border:1px solid transparent;background:transparent;transition:background .2s ease,border-color .2s ease,transform .12s ease;
-  cursor:pointer
+#auth, #app {
+  width: 100%; max-width: 400px; padding: 20px;
+  box-shadow: var(--shadow); border-radius: var(--radius);
+  background: #fff;
 }
-.contact:hover{background:rgba(255,255,255,.03);border-color:var(--border);transform:translateY(-1px)}
-.contact.active{background:rgba(79,140,255,.08);border-color:rgba(79,140,255,.35)}
-.contact .meta{display:flex;flex-direction:column}
-.contact .name{font-weight:600}
-.contact .sub{color:var(--muted);font-size:12px}
-
-.chat{display:grid;grid-template-rows:auto 1fr auto;height:100vh}
-.chat .topbar{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;
-  border-bottom:1px solid var(--border);background:rgba(20,24,33,.7);backdrop-filter:blur(10px)
+h2 { margin-top: 0; }
+.messages {
+  border: 1px solid #ccc; border-radius: var(--radius);
+  padding: 10px; height: 300px; overflow-y: auto; margin-bottom: 10px;
 }
-.chat .title{display:flex;flex-direction:column}
-.chat .title .name{font-weight:700}
-.chat .title .code{font-size:12px;color:var(--muted)}
-
-.messages{padding:16px;overflow:auto}
-.msg{
-  max-width:70%;margin:8px 0;padding:10px 12px;border-radius:14px;line-height:1.35;
-  box-shadow:0 6px 16px rgba(0,0,0,.25);position:relative;word-wrap:break-word;white-space:pre-wrap
+.msg {
+  max-width: 80%; padding: 8px 10px; border-radius: var(--radius);
+  margin: 4px 0; word-wrap: break-word;
 }
-.me{margin-left:auto;background:linear-gradient(135deg,var(--me),#6da0ff)}
-.them{margin-right:auto;background:var(--them)}
-.msg .time{position:absolute;bottom:-16px;font-size:11px;color:var(--muted)}
-.me .time{right:0}.them .time{left:0}
-
-.composer{display:flex;align-items:flex-end;gap:10px;padding:12px 16px;border-top:1px solid var(--border);background:rgba(20,24,33,.7)}
-.composer textarea{height:44px;max-height:160px;resize:vertical}
-.composer button{height:44px}
-
-.card{background:rgba(20,24,33,.85);border:1px solid var(--border);border-radius:14px;padding:16px}
-.stack{display:grid;gap:10px}
-.muted{color:var(--muted)}
-.pill{background:#1a2130;padding:4px 8px;border-radius:8px;font-family:monospace}
-
-.auth-wrap{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.4);backdrop-filter:blur(8px)}
-.hidden{display:none!important}
-.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1a2130;color:var(--text);
-  border:1px solid var(--border);padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
-@media(max-width:880px){.container{grid-template-columns:1fr}.panel{display:none}}
+.me-bubble { background: var(--me); color: #fff; margin-left: auto; }
+.them-bubble { background: var(--them); }
 </style>
 </head>
 <body>
-<div id="app" class="container">
-  <aside class="panel">
-    <div class="inner">
-      <div class="brand"><div class="logo"></div><h1>Minimal Messenger</h1></div>
-      <div class="profile">
-        <div>
-          <div id="profileName" style="font-weight:700">—</div>
-          <div class="id">Your code: <span id="profileCode" class="pill">••••••••••</span></div>
-        </div>
-        <div class="row">
-          <button id="copyCodeBtn">Copy</button>
-          <button id="logoutBtn">Logout</button>
-        </div>
-      </div>
-      <div style="padding:12px 16px;border-bottom:1px solid var(--border)">
-        <div class="card stack">
-          <div style="font-weight:700">Add contact by code</div>
-          <form id="addContactForm" class="stack">
-            <input id="contactCode" inputmode="numeric" maxlength="10" pattern="\\d{10}" placeholder="Friend’s 10-digit code" required />
-            <button type="submit">Add</button>
-          </form>
-        </div>
-      </div>
-      <div class="contacts" id="contactsList"></div>
-    </div>
-  </aside>
-  <main class="chat">
-    <div class="topbar">
-      <div class="title">
-        <div class="name" id="chatName">Select a contact</div>
-        <div class="code" id="chatCode">—
-        </div>
-      </div>
-    </div>
 
-    <div id="messages" class="messages"></div>
-
-    <form id="composer" class="composer">
-      <textarea id="messageInput" placeholder="Type a message..." required></textarea>
-      <button id="sendBtn" type="submit">Send</button>
-    </form>
-  </main>
-</div>
-
-<!-- Auth overlay -->
-<div id="authOverlay" class="auth-wrap hidden">
-  <div class="card" style="width:min(480px,92vw)">
-    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div style="font-size:18px;font-weight:800">Welcome</div>
-      <div class="muted">Use your 10‑digit code as your ID</div>
-    </div>
-    <div class="stack">
-      <form id="loginForm" class="stack">
-        <div style="font-weight:700">Log in</div>
-        <input id="loginEmail" type="email" placeholder="Email" required />
-        <input id="loginPassword" type="password" placeholder="Password" required />
-        <button type="submit">Log In</button>
-      </form>
-      <div class="muted" style="text-align:center">— or —</div>
-      <form id="signupForm" class="stack">
-        <div style="font-weight:700">Sign up</div>
-        <input id="signupEmail" type="email" placeholder="Email" required />
-        <input id="signupPassword" type="password" placeholder="Password" required />
-        <input id="signupCode" inputmode="numeric" maxlength="10" pattern="\d{10}" placeholder="Use your phone number (10 digits)" required />
-        <button type="submit">Create account</button>
-      </form>
-    </div>
+<!-- Auth Screen -->
+<div id="auth">
+  <h2>TajibMessage Lite</h2>
+  <div id="loginForm">
+    <input id="loginEmail" type="email" placeholder="Email" /><br><br>
+    <input id="loginPassword" type="password" placeholder="Password" /><br><br>
+    <button id="loginBtn">Log In</button>
+    <p style="font-size:13px;color:var(--muted)">No account? <a href="#" id="showSignup">Sign up</a></p>
+  </div>
+  <div id="signupForm" class="hidden">
+    <input id="signupEmail" type="email" placeholder="Email" /><br><br>
+    <input id="signupPassword" type="password" placeholder="Password" /><br><br>
+    <input id="signupCode" type="text" maxlength="10" placeholder="Number ID (10 digits)" /><br><br>
+    <button id="signupBtn">Sign Up</button>
+    <p style="font-size:13px;color:var(--muted)">Have an account? <a href="#" id="showLogin">Log in</a></p>
   </div>
 </div>
 
-<div id="toast" class="toast">Saved</div>
-
+<!-- App Screen -->
+<div id="app" class="hidden">
+  <h2>Messages</h2>
+  <div class="messages" id="messages"></div>
+  <div id="newMessageForm" class="hidden">
+    <input id="friendId" type="text" maxlength="10" placeholder="Friend's Number ID" /><br><br>
+    <textarea id="messageText" placeholder="Type your message..."></textarea><br><br>
+    <button id="sendBtn">Send</button>
+  </div>
+  <button id="newMsgBtn">+ New Message</button>
+  <button id="logoutBtn" style="background:#ccc;color:#000;margin-top:10px">Logout</button>
+</div>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
-/* ===== Config ===== */
-const SUPABASE_URL = "https://rqiwzsenaaejtczzwsfk.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxaXd6c2VuYWFlanRjenp3c2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MDk0NDYsImV4cCI6MjA3MjM4NTQ0Nn0.UdDK7oOMZhZOQuKp8lD5VbNhSpYDr7LpLoq7J4MlvW4";
-
-/* ===== Init ===== */
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/* ===== Supabase Config ===== */
+const SUPABASE_URL = "https://rqiwzsenaaejtczzwsfk.supabase.co"; // replace
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxaXd6c2VuYWFlanRjenp3c2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MDk0NDYsImV4cCI6MjA3MjM4NTQ0Nn0.UdDK7oOMZhZOQuKp8lD5VbNhSpYDr7LpLoq7J4MlvW4"; // replace
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ===== State ===== */
-let me = null;              // { id, auth_id, display_name, unique_id }
-let currentContact = null;  // { id, display_name, unique_id }
+let me = null; // my user row
+let friend = null; // friend user row
 let channel = null;
 
-/* ===== Utils ===== */
-const $ = (sel, root=document) => root.querySelector(sel);
-const esc = (s="") => String(s).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;" }[m]));
-const toast = (msg) => {
-  const el = $("#toast");
-  el.textContent = msg;
-  el.classList.add("show");
-  setTimeout(()=>el.classList.remove("show"), 1600);
+/* ===== Helpers ===== */
+const $ = (sel) => document.querySelector(sel);
+function toast(msg){ alert(msg); } // simple alert for now
+function esc(s=""){ return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m])); }
+
+/* ===== Auth UI Switch ===== */
+$("#showSignup").onclick = () => {
+  $("#loginForm").classList.add("hidden");
+  $("#signupForm").classList.remove("hidden");
+};
+$("#showLogin").onclick = () => {
+  $("#signupForm").classList.add("hidden");
+  $("#loginForm").classList.remove("hidden");
 };
 
 /* ===== Auth State ===== */
-supabase.auth.onAuthStateChange(async (_event, session) => {
+sb.auth.onAuthStateChange(async (_evt, session) => {
   if (session?.user) {
-    $("#authOverlay").classList.add("hidden");
     await ensureUserRow(session.user);
-    await loadProfile();
-    await loadContacts();
+    await loadMe();
+    $("#auth").classList.add("hidden");
+    $("#app").classList.remove("hidden");
   } else {
-    $("#authOverlay").classList.remove("hidden");
-    resetChat();
+    $("#auth").classList.remove("hidden");
+    $("#app").classList.add("hidden");
   }
 });
 
-/* ===== Login ===== */
-$("#loginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = $("#loginEmail").value.trim();
-  const password = $("#loginPassword").value;
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return toast(error.message);
-  toast("Logged in");
-});
-
-/* ===== Sign Up (10-digit code as ID) ===== */
-$("#signupForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = $("#signupEmail").value.trim();
-  const password = $("#signupPassword").value;
-  let code = $("#signupCode").value.replace(/\D/g,"");
-  if (!/^\d{10}$/.test(code)) return toast("Enter a 10-digit code");
-
-  // Check uniqueness
-  const { data: exists } = await supabase.from("users").select("id").eq("unique_id", code).maybeSingle();
-  if (exists) return toast("That code is taken. Try another.");
-
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) return toast(error.message);
-
-  // Create profile row
-  const user = data.user;
-  const { error: insertErr } = await supabase.from("users").insert({
-    auth_id: user.id,
-    unique_id: code,
-    email,
-    display_name: email.split("@")[0]
-  });
-  if (insertErr) return toast(insertErr.message);
-  toast("Account created. Check your email to confirm.");
-});
-
-/* ===== Logout & Copy Code ===== */
-$("#logoutBtn").addEventListener("click", async () => {
-  await supabase.auth.signOut();
-  toast("Logged out");
-});
-$("#copyCodeBtn").addEventListener("click", async () => {
-  if (!me) return;
-  await navigator.clipboard.writeText(me.unique_id);
-  toast("Code copied");
-});
-
-/* ===== Ensure User Row ===== */
+/* ===== Ensure user row exists ===== */
 async function ensureUserRow(authUser){
-  const { data: row } = await supabase.from("users").select("*").eq("auth_id", authUser.id).maybeSingle();
+  const { data: row } = await sb.from("users").select("*").eq("auth_id", authUser.id).maybeSingle();
   if (!row) {
-    const fallback = String(Math.floor(1000000000 + Math.random()*9000000000));
-    await supabase.from("users").insert({
+    const code = String(Math.floor(1000000000 + Math.random()*9000000000));
+    await sb.from("users").insert({
       auth_id: authUser.id,
-      unique_id: fallback,
+      unique_id: code,
       email: authUser.email,
       display_name: authUser.email.split("@")[0]
     });
   }
 }
+
+/* ===== Load my profile ===== */
+async function loadMe(){
+  const { data } = await sb.from("users").select("*").eq("auth_id", (await sb.auth.getUser()).data.user.id).single();
+  me = data;
+}
+
+/* ===== Login ===== */
+$("#loginBtn").onclick = async () => {
+  const email = $("#loginEmail").value.trim();
+  const pwd = $("#loginPassword").value;
+  const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
+  if (error) toast("Login failed");
+};
+
+/* ===== Signup ===== */
+$("#signupBtn").onclick = async () => {
+  const email = $("#signupEmail").value.trim();
+  const pwd = $("#signupPassword").value;
+  const code = $("#signupCode").value.trim();
+  if (code.length !== 10) return toast("Number ID must be 10 digits");
+  const { data, error } = await sb.auth.signUp({ email, password: pwd });
+  if (error) return toast("Check your inbox to confirm");
+  const user = data.user;
+  await sb.from("users").insert({
+    auth_id: user.id,
+    unique_id: code,
+    email,
+    display_name: email.split("@")[0]
+  });
+};
+
+/* ===== Logout ===== */
+$("#logoutBtn").onclick = async () => { await sb.auth.signOut(); };
 </script>
 <script>
-/* ===== Load Profile ===== */
-async function loadProfile(){
-  const { data: profile } = await supabase
-    .from("users")
-    .select("id, display_name, unique_id")
-    .eq("auth_id", (await supabase.auth.getUser()).data.user.id)
-    .single();
+/* ===== Toggle New Message Form ===== */
+$("#newMsgBtn").onclick = () => {
+  $("#newMessageForm").classList.toggle("hidden");
+};
 
-  if (!profile) return;
-  me = profile;
-  $("#profileName").textContent = me.display_name || "—";
-  $("#profileCode").textContent = me.unique_id || "—";
-}
+/* ===== Send Message ===== */
+$("#sendBtn").onclick = async () => {
+  const fid = $("#friendId").value.trim();
+  const text = $("#messageText").value.trim();
+  if (!fid || !text) return toast("Enter friend ID and message");
 
-/* ===== Load Contacts ===== */
-async function loadContacts(){
-  const { data: contacts } = await supabase
-    .from("contacts")
-    .select("id, contact:users(id, display_name, unique_id)")
-    .eq("owner_id", me.id)
-    .order("id", { ascending: true });
+  // Find friend by number ID
+  const { data: f } = await sb.from("users").select("*").eq("unique_id", fid).maybeSingle();
+  if (!f) return toast("No user with that ID");
 
-  const list = $("#contactsList");
-  list.innerHTML = "";
-  (contacts || []).forEach(c => {
-    const el = document.createElement("div");
-    el.className = "contact";
-    el.innerHTML = `
-      <div class="meta">
-        <div class="name">${esc(c.contact.display_name)}</div>
-        <div class="sub">Code: ${esc(c.contact.unique_id)}</div>
-      </div>
-    `;
-    el.addEventListener("click", () => selectContact(c.contact));
-    list.appendChild(el);
+  friend = f;
+
+  // Insert message
+  const { error } = await sb.from("messages").insert({
+    sender_id: me.id,
+    receiver_id: friend.id,
+    content: text
   });
-}
+  if (error) return toast("Failed to send");
 
-/* ===== Add Contact by Code ===== */
-$("#addContactForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const code = $("#contactCode").value.trim();
-  if (!/^\d{10}$/.test(code)) return toast("Enter a valid 10-digit code");
-  if (code === me.unique_id) return toast("That's your own code");
+  $("#messageText").value = "";
+};
 
-  // Lookup user by code
-  const { data: user } = await supabase
-    .from("users")
-    .select("id, display_name, unique_id")
-    .eq("unique_id", code)
-    .single();
-
-  if (!user) return toast("No user found with that code");
-
-  // Check if already in contacts
-  const { data: existing } = await supabase
-    .from("contacts")
-    .select("id")
-    .eq("owner_id", me.id)
-    .eq("contact_id", user.id)
-    .maybeSingle();
-
-  if (existing) return toast("Already in contacts");
-
-  // Insert into contacts
-  const { error } = await supabase.from("contacts").insert({
-    owner_id: me.id,
-    contact_id: user.id
-  });
-  if (error) return toast(error.message);
-
-  toast("Contact added");
-  $("#contactCode").value = "";
-  await loadContacts();
-});
-
-/* ===== Select Contact ===== */
-function selectContact(contact){
-  currentContact = contact;
-  $("#chatName").textContent = contact.display_name;
-  $("#chatCode").textContent = contact.unique_id;
-  loadMessages();
-  bindRealtime();
-}
-
-/* ===== Reset Chat ===== */
-function resetChat(){
-  me = null;
-  currentContact = null;
-  $("#chatName").textContent = "Select a contact";
-  $("#chatCode").textContent = "—";
-  $("#messages").innerHTML = "";
-}
-</script>
-<script>
-/* ===== Load Messages for Current Contact ===== */
+/* ===== Load Messages ===== */
 async function loadMessages(){
-  if (!currentContact) return;
-  const { data: msgs, error } = await supabase
+  if (!friend) return;
+  const { data: msgs } = await sb
     .from("messages")
-    .select("id, sender_id, receiver_id, content, created_at")
+    .select("*")
     .or(
-      `and(sender_id.eq.${me.id},receiver_id.eq.${currentContact.id}),
-       and(sender_id.eq.${currentContact.id},receiver_id.eq.${me.id})`
+      `and(sender_id.eq.${me.id},receiver_id.eq.${friend.id}),
+       and(sender_id.eq.${friend.id},receiver_id.eq.${me.id})`
     )
     .order("created_at", { ascending: true });
 
-  if (error) {
-    toast("Error loading messages");
-    return;
-  }
-
   const box = $("#messages");
   box.innerHTML = "";
-  (msgs || []).forEach(renderMessage);
-  box.scrollTop = box.scrollHeight;
-}
-
-/* ===== Render a Single Message Bubble ===== */
-function renderMessage(msg){
-  const mine = msg.sender_id === me.id;
-  const el = document.createElement("div");
-  el.className = `msg ${mine ? "me" : "them"}`;
-  el.innerHTML = `
-    ${esc(msg.content)}
-    <div class="time">
-      ${new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-    </div>
-  `;
-  $("#messages").appendChild(el);
-}
-
-/* ===== Bind Realtime Subscription for Current Chat ===== */
-function bindRealtime(){
-  // Remove old channel if exists
-  if (channel) {
-    supabase.removeChannel(channel);
-    channel = null;
-  }
-  if (!currentContact) return;
-
-  channel = supabase
-    .channel(`chat:${me.id}:${currentContact.id}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "messages",
-        filter: `or(
-          and(sender_id.eq.${me.id},receiver_id.eq.${currentContact.id}),
-          and(sender_id.eq.${currentContact.id},receiver_id.eq.${me.id})
-        )`
-      },
-      payload => {
-        renderMessage(payload.new);
-        $("#messages").scrollTop = $("#messages").scrollHeight;
-      }
-    )
-    .subscribe();
-}
-
-/* ===== Send a New Message ===== */
-$("#composer").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  if (!currentContact) return toast("Select a contact first");
-
-  const text = $("#messageInput").value.trim();
-  if (!text) return;
-
-  const { error } = await supabase.from("messages").insert({
-    sender_id: me.id,
-    receiver_id: currentContact.id,
-    content: text
+  (msgs || []).forEach(m => {
+    const mine = m.sender_id === me.id;
+    const div = document.createElement("div");
+    div.className = `msg ${mine ? "me-bubble" : "them-bubble"}`;
+    div.textContent = m.content;
+    box.appendChild(div);
   });
-
-  if (error) return toast(error.message);
-  $("#messageInput").value = "";
-});
-
-/* ===== Auto-Scroll on New Messages ===== */
-const observer = new MutationObserver(() => {
-  const box = $("#messages");
-  box.scrollTop = box.scrollHeight;
-});
-observer.observe($("#messages"), { childList: true });
-
-</script>
-<script>
-/* ===== Extra Helpers ===== */
-function esc(s="") {
-  return String(s).replace(/[&<>"']/g, m => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
-  }[m]));
-}
-
-/* ===== Auto-login on refresh ===== */
-(async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session?.user) {
-    $("#authOverlay").classList.add("hidden");
-    await ensureUserRow(session.user);
-    await loadProfile();
-    await loadContacts();
-  } else {
-    $("#authOverlay").classList.remove("hidden");
-  }
-})();
-
-/* ===== Keyboard Send Shortcut ===== */
-$("#messageInput").addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    $("#composer").requestSubmit();
-  }
-});
-
-/* ===== Scroll to bottom when selecting contact ===== */
-function scrollMessagesToBottom() {
-  const box = $("#messages");
   box.scrollTop = box.scrollHeight;
 }
 
-/* ===== Reset UI on logout ===== */
-function resetChat(){
-  me = null;
-  currentContact = null;
-  $("#chatName").textContent = "Select a contact";
-  $("#chatCode").textContent = "—";
-  $("#messages").innerHTML = "";
-  $("#contactsList").innerHTML = "";
+/* ===== Realtime Subscription ===== */
+function bindRealtime(){
+  if (channel) sb.removeChannel(channel);
+  if (!friend) return;
+
+  channel = sb.channel("chat")
+    .on("postgres_changes", {
+      event: "INSERT",
+      schema: "public",
+      table: "messages",
+      filter: `or(
+        and(sender_id.eq.${me.id},receiver_id.eq.${friend.id}),
+        and(sender_id.eq.${friend.id},receiver_id.eq.${me.id})
+      )`
+    }, payload => {
+      const m = payload.new;
+      const mine = m.sender_id === me.id;
+      const div = document.createElement("div");
+      div.className = `msg ${mine ? "me-bubble" : "them-bubble"}`;
+      div.textContent = m.content;
+      $("#messages").appendChild(div);
+      $("#messages").scrollTop = $("#messages").scrollHeight;
+    }).subscribe();
 }
 
-/* ===== Toast Notification ===== */
-function toast(msg) {
-  const el = $("#toast");
-  el.textContent = msg;
-  el.classList.add("show");
-  setTimeout(() => el.classList.remove("show"), 1600);
-}
+/* ===== Auto-load messages when friend ID entered ===== */
+$("#friendId").addEventListener("change", async () => {
+  const fid = $("#friendId").value.trim();
+  if (fid.length === 10) {
+    const { data: f } = await sb.from("users").select("*").eq("unique_id", fid).maybeSingle();
+    if (f) {
+      friend = f;
+      await loadMessages();
+      bindRealtime();
+    }
+  }
+});
 </script>
-</body>
-</html>
