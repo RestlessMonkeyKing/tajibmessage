@@ -5,43 +5,45 @@
 <title>TajibMessage Lite</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-:root {
-  --bg: #fff; --text: #111; --muted: #666;
-  --accent: #3ecf8e; --accent2: #2ebd7b;
-  --me: #0a84ff; --them: #f2f5f9;
-  --radius: 12px; --shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
 body {
-  margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-  background: var(--bg); color: var(--text);
-  display: flex; align-items: center; justify-content: center; height: 100vh;
+  margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f5f6fa; display: flex; align-items: center; justify-content: center;
+  height: 100vh;
 }
 .hidden { display: none !important; }
-button {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: #fff; border: none; padding: 10px 14px;
-  border-radius: var(--radius); font-weight: 600; cursor: pointer;
-}
-input, textarea {
-  width: 100%; padding: 10px; border-radius: var(--radius);
-  border: 1px solid #ccc; font-size: 14px;
-}
 #auth, #app {
   width: 100%; max-width: 400px; padding: 20px;
-  box-shadow: var(--shadow); border-radius: var(--radius);
-  background: #fff;
+  background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 h2 { margin-top: 0; }
+input, textarea {
+  width: 100%; padding: 10px; margin-bottom: 10px;
+  border-radius: 8px; border: 1px solid #ccc; font-size: 14px;
+}
+button {
+  background: linear-gradient(135deg, #3ecf8e, #2ebd7b);
+  color: #fff; border: none; padding: 10px 14px;
+  border-radius: 8px; font-weight: 600; cursor: pointer;
+}
+button.secondary { background: #ccc; color: #000; }
 .messages {
-  border: 1px solid #ccc; border-radius: var(--radius);
+  border: 1px solid #ccc; border-radius: 8px;
   padding: 10px; height: 300px; overflow-y: auto; margin-bottom: 10px;
+  background: #fafafa;
 }
 .msg {
-  max-width: 80%; padding: 8px 10px; border-radius: var(--radius);
+  max-width: 80%; padding: 8px 10px; border-radius: 8px;
   margin: 4px 0; word-wrap: break-word;
 }
-.me-bubble { background: var(--me); color: #fff; margin-left: auto; }
-.them-bubble { background: var(--them); }
+.me { background: #0a84ff; color: #fff; margin-left: auto; }
+.them { background: #e0e0e0; }
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: rgba(0,0,0,0.85); color: #fff; padding: 10px 16px;
+  border-radius: 8px; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s; z-index: 999;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -50,17 +52,17 @@ h2 { margin-top: 0; }
 <div id="auth">
   <h2>TajibMessage Lite</h2>
   <div id="loginForm">
-    <input id="loginEmail" type="email" placeholder="Email" /><br><br>
-    <input id="loginPassword" type="password" placeholder="Password" /><br><br>
+    <input id="loginEmail" type="email" placeholder="Email" />
+    <input id="loginPassword" type="password" placeholder="Password" />
     <button id="loginBtn">Log In</button>
-    <p style="font-size:13px;color:var(--muted)">No account? <a href="#" id="showSignup">Sign up</a></p>
+    <p style="font-size:13px;color:#666">No account? <a href="#" id="showSignup">Sign up</a></p>
   </div>
   <div id="signupForm" class="hidden">
-    <input id="signupEmail" type="email" placeholder="Email" /><br><br>
-    <input id="signupPassword" type="password" placeholder="Password" /><br><br>
-    <input id="signupCode" type="text" maxlength="10" placeholder="Number ID (10 digits)" /><br><br>
+    <input id="signupEmail" type="email" placeholder="Email" />
+    <input id="signupPassword" type="password" placeholder="Password" />
+    <input id="signupCode" type="text" maxlength="10" placeholder="Number ID (10 digits)" />
     <button id="signupBtn">Sign Up</button>
-    <p style="font-size:13px;color:var(--muted)">Have an account? <a href="#" id="showLogin">Log in</a></p>
+    <p style="font-size:13px;color:#666">Have an account? <a href="#" id="showLogin">Log in</a></p>
   </div>
 </div>
 
@@ -69,29 +71,36 @@ h2 { margin-top: 0; }
   <h2>Messages</h2>
   <div class="messages" id="messages"></div>
   <div id="newMessageForm" class="hidden">
-    <input id="friendId" type="text" maxlength="10" placeholder="Friend's Number ID" /><br><br>
-    <textarea id="messageText" placeholder="Type your message..."></textarea><br><br>
+    <input id="friendId" type="text" maxlength="10" placeholder="Friend's Number ID" />
+    <textarea id="messageText" placeholder="Type your message..."></textarea>
     <button id="sendBtn">Send</button>
   </div>
   <button id="newMsgBtn">+ New Message</button>
-  <button id="logoutBtn" style="background:#ccc;color:#000;margin-top:10px">Logout</button>
+  <button id="logoutBtn" class="secondary">Logout</button>
 </div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
 /* ===== Supabase Config ===== */
-const SUPABASE_URL = "https://rqiwzsenaaejtczzwsfk.supabase.co"; // replace
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxaXd6c2VuYWFlanRjenp3c2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MDk0NDYsImV4cCI6MjA3MjM4NTQ0Nn0.UdDK7oOMZhZOQuKp8lD5VbNhSpYDr7LpLoq7J4MlvW4"; // replace
+const SUPABASE_URL = "https://YOUR-PROJECT-ID.supabase.co"; // replace
+const SUPABASE_ANON_KEY = "YOUR-ANON-KEY"; // replace
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ===== State ===== */
-let me = null; // my user row
-let friend = null; // friend user row
+let me = null;
+let friend = null;
 let channel = null;
 
 /* ===== Helpers ===== */
 const $ = (sel) => document.querySelector(sel);
-function toast(msg){ alert(msg); } // simple alert for now
-function esc(s=""){ return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m])); }
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2000);
+}
 
 /* ===== Auth UI Switch ===== */
 $("#showSignup").onclick = () => {
@@ -132,7 +141,10 @@ async function ensureUserRow(authUser){
 
 /* ===== Load my profile ===== */
 async function loadMe(){
-  const { data } = await sb.from("users").select("*").eq("auth_id", (await sb.auth.getUser()).data.user.id).single();
+  const { data } = await sb.from("users")
+    .select("*")
+    .eq("auth_id", (await sb.auth.getUser()).data.user.id)
+    .single();
   me = data;
 }
 
@@ -140,31 +152,36 @@ async function loadMe(){
 $("#loginBtn").onclick = async () => {
   const email = $("#loginEmail").value.trim();
   const pwd = $("#loginPassword").value;
+  if (!email || !pwd) return toast("Enter email and password");
   const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
-  if (error) toast("Login failed");
+  if (error) toast("Login failed: " + error.message);
 };
 
-/* ===== Signup ===== */
+/* ===== Signup (fixed flow) ===== */
 $("#signupBtn").onclick = async () => {
   const email = $("#signupEmail").value.trim();
   const pwd = $("#signupPassword").value;
   const code = $("#signupCode").value.trim();
+  if (!email || !pwd || !code) return toast("Fill all fields");
   if (code.length !== 10) return toast("Number ID must be 10 digits");
+
+  // Sign up
   const { data, error } = await sb.auth.signUp({ email, password: pwd });
-  if (error) return toast("Check your inbox to confirm");
-  const user = data.user;
-  await sb.from("users").insert({
-    auth_id: user.id,
-    unique_id: code,
-    email,
-    display_name: email.split("@")[0]
-  });
+  if (error) return toast("Signup failed: " + error.message);
+
+  // Immediately sign in (skip email confirm in dev)
+  await sb.auth.signInWithPassword({ email, password: pwd });
+
+  // Insert profile row
+  const user = (await sb.auth.getUser()).data.user;
+  await ensureUserRow(user);
+
+  toast("Account created");
 };
 
 /* ===== Logout ===== */
-$("#logoutBtn").onclick = async () => { await sb.auth.signOut(); };
-</script>
-<script>
+$("#logoutBtn").onclick = async () => { await sb.auth.signOut(); toast("Logged out"); };
+
 /* ===== Toggle New Message Form ===== */
 $("#newMsgBtn").onclick = () => {
   $("#newMessageForm").classList.toggle("hidden");
@@ -176,20 +193,16 @@ $("#sendBtn").onclick = async () => {
   const text = $("#messageText").value.trim();
   if (!fid || !text) return toast("Enter friend ID and message");
 
-  // Find friend by number ID
   const { data: f } = await sb.from("users").select("*").eq("unique_id", fid).maybeSingle();
   if (!f) return toast("No user with that ID");
 
   friend = f;
-
-  // Insert message
   const { error } = await sb.from("messages").insert({
     sender_id: me.id,
     receiver_id: friend.id,
     content: text
   });
   if (error) return toast("Failed to send");
-
   $("#messageText").value = "";
 };
 
@@ -210,7 +223,7 @@ async function loadMessages(){
   (msgs || []).forEach(m => {
     const mine = m.sender_id === me.id;
     const div = document.createElement("div");
-    div.className = `msg ${mine ? "me-bubble" : "them-bubble"}`;
+    div.className = `msg ${mine ? "me" : "them"}`;
     div.textContent = m.content;
     box.appendChild(div);
   });
@@ -235,7 +248,7 @@ function bindRealtime(){
       const m = payload.new;
       const mine = m.sender_id === me.id;
       const div = document.createElement("div");
-      div.className = `msg ${mine ? "me-bubble" : "them-bubble"}`;
+      div.className = `msg ${mine ? "me" : "them"}`;
       div.textContent = m.content;
       $("#messages").appendChild(div);
       $("#messages").scrollTop = $("#messages").scrollHeight;
